@@ -1,4 +1,4 @@
-name: Build SaleScout APK
+name: Build SaleScout Family APK
 
 on:
   workflow_dispatch:
@@ -9,18 +9,19 @@ on:
 
 jobs:
   build:
-    name: Build SaleScout debug APK
+    name: Build SaleScout family APK
     runs-on: ubuntu-latest
 
     steps:
       - name: Check out repo
         uses: actions/checkout@v4
 
-      - name: Create Android project
+      - name: Create family manual Android app
         shell: bash
         run: |
           mkdir -p app/src/main/java/com/salescout/app
           mkdir -p app/src/main/res/values
+          mkdir -p app/src/main/assets
 
           cat > settings.gradle <<'EOF'
           pluginManagement {
@@ -37,7 +38,7 @@ jobs:
                   mavenCentral()
               }
           }
-          rootProject.name = 'SaleScoutAndroidWrapper'
+          rootProject.name = 'SaleScoutFamilyManual'
           include ':app'
           EOF
 
@@ -57,11 +58,11 @@ jobs:
               compileSdk 35
 
               defaultConfig {
-                  applicationId 'com.salescout.app'
+                  applicationId 'com.salescout.family'
                   minSdk 23
-                  targetSdk 35
-                  versionCode 3
-                  versionName '0.1.2'
+                  targetSdk 34
+                  versionCode 10
+                  versionName '1.0-family-manual'
               }
           }
           EOF
@@ -74,7 +75,8 @@ jobs:
 
           cat > app/src/main/res/values/colors.xml <<'EOF'
           <resources>
-              <color name="salescout_green">#2ecc71</color>
+              <color name="salescout_green">#2D804E</color>
+              <color name="salescout_light">#F6FAF6</color>
           </resources>
           EOF
 
@@ -85,6 +87,9 @@ jobs:
                   <item name="android:windowActionBar">false</item>
                   <item name="android:windowLightStatusBar">false</item>
                   <item name="android:colorAccent">@color/salescout_green</item>
+                  <item name="android:statusBarColor">@color/salescout_green</item>
+                  <item name="android:navigationBarColor">@color/salescout_light</item>
+                  <item name="android:windowLightNavigationBar">true</item>
               </style>
           </resources>
           EOF
@@ -95,22 +100,14 @@ jobs:
                   <package android:name="com.google.android.apps.maps" />
                   <intent>
                       <action android:name="android.intent.action.VIEW" />
-                      <data android:scheme="geo" />
-                  </intent>
-                  <intent>
-                      <action android:name="android.intent.action.VIEW" />
-                      <data android:scheme="google.navigation" />
-                  </intent>
-                  <intent>
-                      <action android:name="android.intent.action.VIEW" />
                       <data android:scheme="https" />
                   </intent>
+                  <intent>
+                      <action android:name="android.intent.action.VIEW" />
+                      <data android:scheme="geo" />
+                  </intent>
               </queries>
-
               <uses-permission android:name="android.permission.INTERNET" />
-              <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-              <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-
               <application
                   android:allowBackup="true"
                   android:label="@string/app_name"
@@ -131,305 +128,300 @@ jobs:
 
           cat > app/src/main/java/com/salescout/app/MainActivity.java <<'EOF'
           package com.salescout.app;
-
-          import android.Manifest;
+          
           import android.app.Activity;
           import android.content.ActivityNotFoundException;
           import android.content.Intent;
-          import android.content.pm.PackageManager;
+          import android.graphics.Color;
           import android.net.Uri;
           import android.os.Build;
           import android.os.Bundle;
-          import android.os.Message;
           import android.view.ViewGroup;
-          import android.webkit.GeolocationPermissions;
+          import android.view.Window;
           import android.webkit.JavascriptInterface;
-          import android.webkit.WebChromeClient;
           import android.webkit.WebResourceRequest;
           import android.webkit.WebSettings;
           import android.webkit.WebView;
           import android.webkit.WebViewClient;
+          import android.widget.FrameLayout;
           import android.widget.Toast;
-
-          import java.net.URISyntaxException;
-
+          
           public class MainActivity extends Activity {
-              private static final String APP_URL = "https://salescout-8a539.web.app";
-              private static final String APP_HOST = "salescout-8a539.web.app";
               private static final String GOOGLE_MAPS_PACKAGE = "com.google.android.apps.maps";
-              private static final int LOCATION_REQUEST_CODE = 42;
-
               private WebView webView;
-              private String pendingGeoOrigin;
-              private GeolocationPermissions.Callback pendingGeoCallback;
-
+          
               @Override
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
-                  webView = new WebView(this);
-                  webView.setLayoutParams(new ViewGroup.LayoutParams(
-                          ViewGroup.LayoutParams.MATCH_PARENT,
-                          ViewGroup.LayoutParams.MATCH_PARENT
-                  ));
-                  setContentView(webView);
-                  configureWebView(webView);
-
-                  if (savedInstanceState == null) {
-                      webView.loadUrl(APP_URL);
-                  } else {
-                      webView.restoreState(savedInstanceState);
+                  Window window = getWindow();
+                  window.setStatusBarColor(Color.rgb(45, 128, 78));
+                  window.setNavigationBarColor(Color.rgb(246, 250, 246));
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                      window.setDecorFitsSystemWindows(true);
                   }
+                  FrameLayout root = new FrameLayout(this);
+                  root.setFitsSystemWindows(true);
+                  webView = new WebView(this);
+                  root.addView(webView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                  setContentView(root);
+                  configureWebView();
+                  if (savedInstanceState == null) webView.loadUrl("file:///android_asset/index.html");
+                  else webView.restoreState(savedInstanceState);
               }
-
-              private void configureWebView(WebView targetWebView) {
-                  WebSettings settings = targetWebView.getSettings();
+          
+              private void configureWebView() {
+                  WebSettings settings = webView.getSettings();
                   settings.setJavaScriptEnabled(true);
                   settings.setDomStorageEnabled(true);
-                  settings.setGeolocationEnabled(true);
+                  settings.setDatabaseEnabled(true);
                   settings.setLoadWithOverviewMode(true);
                   settings.setUseWideViewPort(true);
-                  settings.setBuiltInZoomControls(false);
-                  settings.setDisplayZoomControls(false);
                   settings.setSupportMultipleWindows(true);
                   settings.setJavaScriptCanOpenWindowsAutomatically(true);
-
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                       settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
                   }
-
-                  targetWebView.addJavascriptInterface(new MapsBridge(), "SaleScoutAndroid");
-                  targetWebView.setWebViewClient(new SaleScoutWebViewClient());
-                  targetWebView.setWebChromeClient(new SaleScoutChromeClient());
-              }
-
-              private class SaleScoutWebViewClient extends WebViewClient {
-                  @Override
-                  public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                      return handleUrl(request.getUrl().toString());
-                  }
-
-                  @SuppressWarnings("deprecation")
-                  @Override
-                  public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                      return handleUrl(url);
-                  }
-              }
-
-              private class SaleScoutChromeClient extends WebChromeClient {
-                  @Override
-                  public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
-                      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                              checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                          pendingGeoOrigin = origin;
-                          pendingGeoCallback = callback;
-                          requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_REQUEST_CODE);
-                      } else {
-                          callback.invoke(origin, true, false);
+                  webView.addJavascriptInterface(new MapsBridge(), "SaleScoutAndroid");
+                  webView.setWebViewClient(new WebViewClient() {
+                      @Override
+                      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                          return handleUrl(request.getUrl().toString());
                       }
-                  }
-
-                  @Override
-                  public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
-                      WebView popupWebView = new WebView(MainActivity.this);
-                      popupWebView.setWebViewClient(new WebViewClient() {
-                          @Override
-                          public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                              return handleUrl(request.getUrl().toString());
-                          }
-
-                          @SuppressWarnings("deprecation")
-                          @Override
-                          public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                              return handleUrl(url);
-                          }
-                      });
-
-                      WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
-                      transport.setWebView(popupWebView);
-                      resultMsg.sendToTarget();
-                      return true;
-                  }
+                      @Override
+                      public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                          return handleUrl(url);
+                      }
+                  });
               }
-
-              private class MapsBridge {
-                  @JavascriptInterface
-                  public void openGoogleMaps(String url) {
-                      runOnUiThread(() -> openMapsUrl(url));
-                  }
-              }
-
+          
               private boolean handleUrl(String url) {
-                  if (url == null || url.trim().isEmpty()) {
-                      return false;
-                  }
-
-                  if (isSaleScoutUrl(url)) {
-                      return false;
-                  }
-
-                  if (url.startsWith("intent://")) {
-                      openIntentUrl(url);
+                  if (url == null) return false;
+                  if (url.startsWith("file:///android_asset/")) return false;
+                  if (url.contains("google.com/maps") || url.contains("maps.google.com") || url.contains("maps.app.goo.gl") || url.startsWith("geo:") || url.startsWith("google.navigation:")) {
+                      openMaps(url);
                       return true;
                   }
-
-                  if (isGoogleMapsUrl(url)) {
-                      openMapsUrl(url);
+                  if (url.startsWith("http://") || url.startsWith("https://")) {
+                      try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))); } catch (Exception ignored) {}
                       return true;
                   }
-
-                  if (isExternalScheme(url)) {
-                      openGenericExternalUrl(url);
-                      return true;
-                  }
-
                   return false;
               }
-
-              private boolean isSaleScoutUrl(String url) {
-                  try {
-                      Uri uri = Uri.parse(url);
-                      String host = uri.getHost();
-                      return host != null && host.equalsIgnoreCase(APP_HOST);
-                  } catch (Exception e) {
-                      return false;
+          
+              public class MapsBridge {
+                  @JavascriptInterface
+                  public void openMaps(final String url) {
+                      runOnUiThread(() -> MainActivity.this.openMaps(url));
                   }
               }
-
-              private boolean isGoogleMapsUrl(String url) {
-                  try {
-                      Uri uri = Uri.parse(url);
-                      String scheme = uri.getScheme();
-                      String host = uri.getHost();
-
-                      if (scheme == null) {
-                          return false;
-                      }
-
-                      if (scheme.equalsIgnoreCase("geo") || scheme.equalsIgnoreCase("google.navigation")) {
-                          return true;
-                      }
-
-                      if (host == null) {
-                          return false;
-                      }
-
-                      String normalizedHost = host.toLowerCase();
-                      String path = uri.getPath() == null ? "" : uri.getPath().toLowerCase();
-
-                      return normalizedHost.equals("maps.app.goo.gl")
-                              || normalizedHost.equals("goo.gl")
-                              || normalizedHost.equals("maps.google.com")
-                              || (normalizedHost.equals("www.google.com") && path.startsWith("/maps"))
-                              || (normalizedHost.equals("google.com") && path.startsWith("/maps"));
-                  } catch (Exception e) {
-                      return false;
-                  }
-              }
-
-              private boolean isExternalScheme(String url) {
-                  try {
-                      Uri uri = Uri.parse(url);
-                      String scheme = uri.getScheme();
-                      if (scheme == null) {
-                          return false;
-                      }
-
-                      return scheme.equalsIgnoreCase("mailto")
-                              || scheme.equalsIgnoreCase("tel")
-                              || scheme.equalsIgnoreCase("sms")
-                              || scheme.equalsIgnoreCase("market");
-                  } catch (Exception e) {
-                      return false;
-                  }
-              }
-
-              private void openMapsUrl(String url) {
-                  try {
-                      Uri uri = Uri.parse(url);
-                      Intent mapsIntent = new Intent(Intent.ACTION_VIEW, uri);
-                      mapsIntent.setPackage(GOOGLE_MAPS_PACKAGE);
-                      startActivity(mapsIntent);
-                  } catch (ActivityNotFoundException mapsNotInstalled) {
-                      openGenericExternalUrl(url);
-                  } catch (Exception e) {
-                      showOpenError();
-                  }
-              }
-
-              private void openIntentUrl(String url) {
-                  try {
-                      Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
-                      startActivity(intent);
-                  } catch (ActivityNotFoundException appMissing) {
-                      openIntentFallbackUrl(url);
-                  } catch (URISyntaxException e) {
-                      showOpenError();
-                  } catch (Exception e) {
-                      showOpenError();
-                  }
-              }
-
-              private void openIntentFallbackUrl(String url) {
-                  try {
-                      Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
-                      String fallbackUrl = intent.getStringExtra("browser_fallback_url");
-                      if (fallbackUrl != null && !fallbackUrl.trim().isEmpty()) {
-                          openGenericExternalUrl(fallbackUrl);
-                      } else {
-                          showOpenError();
-                      }
-                  } catch (Exception e) {
-                      showOpenError();
-                  }
-              }
-
-              private void openGenericExternalUrl(String url) {
+          
+              private void openMaps(String url) {
                   try {
                       Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                      intent.setPackage(GOOGLE_MAPS_PACKAGE);
                       startActivity(intent);
+                  } catch (ActivityNotFoundException first) {
+                      try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))); }
+                      catch (Exception second) { Toast.makeText(this, "No app found to open maps.", Toast.LENGTH_SHORT).show(); }
                   } catch (Exception e) {
-                      showOpenError();
+                      Toast.makeText(this, "Could not open maps.", Toast.LENGTH_SHORT).show();
                   }
               }
-
-              private void showOpenError() {
-                  Toast.makeText(this, "No app found to open this link.", Toast.LENGTH_SHORT).show();
-              }
-
-              @Override
-              public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-                  super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-                  if (requestCode == LOCATION_REQUEST_CODE && pendingGeoCallback != null) {
-                      boolean granted = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
-                      pendingGeoCallback.invoke(pendingGeoOrigin, granted, false);
-                      pendingGeoOrigin = null;
-                      pendingGeoCallback = null;
-                  }
-              }
-
+          
               @Override
               public void onBackPressed() {
-                  if (webView != null && webView.canGoBack()) {
-                      webView.goBack();
-                  } else {
-                      super.onBackPressed();
-                  }
+                  if (webView != null && webView.canGoBack()) webView.goBack();
+                  else super.onBackPressed();
               }
-
+          
               @Override
               protected void onSaveInstanceState(Bundle outState) {
                   super.onSaveInstanceState(outState);
                   webView.saveState(outState);
               }
-
+          
               @Override
               protected void onDestroy() {
-                  if (webView != null) {
-                      webView.destroy();
-                  }
+                  if (webView != null) webView.destroy();
                   super.onDestroy();
               }
           }
+          EOF
+
+          cat > app/src/main/assets/index.html <<'EOF'
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+            <title>SaleScout</title>
+            <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+            <style>
+              :root {
+                --green:#2d804e;
+                --green2:#1f6b3e;
+                --bg:#f6faf6;
+                --card:#ffffff;
+                --text:#142018;
+                --muted:#647067;
+                --line:#dfe8e0;
+                --danger:#b3261e;
+                --shadow:0 10px 24px rgba(0,0,0,.08);
+                --bottom:88px;
+              }
+              *{box-sizing:border-box}
+              html,body{margin:0;height:100%;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+              body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+              header{position:sticky;top:0;z-index:5;background:var(--green);color:white;padding:12px 14px 14px;box-shadow:var(--shadow)}
+              .brand{display:flex;gap:12px;align-items:center}
+              .logo{width:52px;height:52px;border-radius:13px;background:white;color:var(--green);display:grid;place-items:center;font-weight:900;font-size:20px;box-shadow:0 4px 12px rgba(0,0,0,.15);flex:0 0 auto}
+              h1{font-size:29px;line-height:1;margin:0;font-weight:900;letter-spacing:-1px}.tag{font-size:16px;opacity:.94;margin-top:4px}
+              main{padding:14px 12px calc(var(--bottom) + 20px);max-width:760px;margin:0 auto}
+              .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
+              .row{display:flex;gap:10px;align-items:center}.row>*{min-width:0}.grow{flex:1}
+              label{display:block;font-weight:800;margin:7px 0 6px;font-size:14px;color:#445048}
+              input,textarea,select{width:100%;border:1px solid #ccd8ce;border-radius:12px;background:#fff;padding:12px;font-size:16px;color:var(--text);outline:none} textarea{min-height:74px;resize:vertical}
+              button{border:0;border-radius:13px;background:var(--green);color:white;padding:12px 14px;font-weight:900;font-size:16px;box-shadow:0 3px 10px rgba(45,128,78,.22)}
+              button.secondary{background:#e8f1e9;color:#173820;box-shadow:none;border:1px solid #cfe0d2} button.danger{background:#fff;color:var(--danger);border:1px solid #efc6c1;box-shadow:none} button.small{font-size:13px;padding:8px 10px;border-radius:10px}.pill{border-radius:999px}
+              .tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;gap:10px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:rgba(45,128,78,.96);backdrop-filter:blur(8px);box-shadow:0 -8px 20px rgba(0,0,0,.12)}
+              .tabs button{flex:1;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);box-shadow:none}.tabs button.active{background:#fff;color:var(--green)}
+              .screen{display:none}.screen.active{display:block}.hint{color:var(--muted);font-size:14px;line-height:1.35}.empty{padding:26px 10px;text-align:center;color:var(--muted)}
+              #map{height:390px;border-radius:16px;border:1px solid var(--line);overflow:hidden;background:#dfe9db}.mapNote{font-size:12px;color:var(--muted);margin-top:7px}
+              .sale{border:1px solid var(--line);border-radius:15px;padding:12px;margin:10px 0;background:white}.saleHead{display:flex;gap:10px;justify-content:space-between}.saleTitle{font-size:18px;font-weight:900}.addr{color:#23527a;font-weight:700;margin-top:3px}.meta{font-size:13px;color:var(--muted);margin-top:4px}.notes{white-space:pre-wrap;margin-top:8px;font-size:14px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.badge{display:inline-block;font-size:12px;font-weight:900;padding:4px 8px;border-radius:999px;background:#eaf3eb;color:#1c673b;margin-left:4px}.visited .saleTitle,.visited .addr,.visited .notes{opacity:.55;text-decoration:line-through}.checkline{display:flex;align-items:center;gap:9px;margin-top:9px;font-size:14px}.checkline input{width:auto}
+              .topTools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}.stats{font-size:14px;color:var(--muted);font-weight:700}.routeBox{background:#eef7ef;border:1px solid #d2e7d5;border-radius:14px;padding:12px;margin:10px 0}.routeStop{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #d8eadb}.routeStop:last-child{border-bottom:0}.routeStop b{font-size:14px}.routeStop small{display:block;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:230px}
+              .modal{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.45);display:none;align-items:flex-end}.modal.show{display:flex}.sheet{background:#fff;width:100%;max-width:760px;margin:0 auto;border-radius:24px 24px 0 0;padding:16px 14px calc(20px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto}.sheet h2{margin:0 0 8px}.split{display:grid;grid-template-columns:1fr 1fr;gap:10px}.sr{position:absolute;left:-10000px}
+              @media(min-width:700px){.modal{align-items:center}.sheet{border-radius:24px;max-width:620px}.tabs{left:50%;transform:translateX(-50%);max-width:760px;border-radius:22px 22px 0 0}.routeStop small{max-width:480px}}
+            </style>
+          </head>
+          <body>
+            <header><div class="brand"><div class="logo">SS</div><div><h1>SaleScout</h1><div class="tag">Family yard-sale planner</div></div></div></header>
+            <main>
+              <section id="mapScreen" class="screen active">
+                <div class="card">
+                  <div class="row"><div class="grow"><label>Home city / start area</label><input id="homeInput" value="Gladwin, MI" /></div><button id="centerBtn" title="Center map">Map</button></div>
+                  <div class="hint" id="centerStatus">Manual family mode — no login, no scraping.</div>
+                </div>
+                <div class="card"><div id="map"></div><div class="mapNote">Map uses OpenStreetMap. If a pin fails, the sale still works for Google Maps routing by address.</div></div>
+                <div class="card"><div class="row"><div class="grow"><h2 style="margin:0">Add a sale</h2><div class="hint">Type the address, date/time, and notes. Delete anything you decide not to visit.</div></div><button id="openAddBtn">Add</button></div></div>
+              </section>
+          
+              <section id="listScreen" class="screen">
+                <div class="card">
+                  <div class="topTools"><button class="secondary small" data-filter="all">All</button><button class="secondary small" data-filter="today">Today</button><button class="secondary small" data-filter="week">This week</button><button class="secondary small" id="clearVisitedBtn">Clear visited</button></div>
+                  <div class="stats" id="stats"></div>
+                </div>
+                <div id="salesList"></div>
+              </section>
+          
+              <section id="routeScreen" class="screen">
+                <div class="card"><h2 style="margin-top:0">Route</h2><div class="hint">Included sales that are not marked visited will be sent to Google Maps. Put them in the order you want.</div><div class="routeBox" id="routeStops"></div><button id="openRouteBtn">Open route in Google Maps</button><button class="secondary" id="copyRouteBtn" style="margin-left:8px;margin-top:8px">Show route link</button><div id="routeLinkBox" class="hint" style="word-break:break-word;margin-top:10px"></div></div>
+                <div class="card"><h3 style="margin-top:0">Backup / share</h3><div class="hint">Use this if you want to copy the day’s list to another phone. It is not automatic sync.</div><div class="actions"><button class="secondary" id="exportBtn">Show backup text</button><button class="secondary" id="importBtn">Import backup text</button></div><textarea id="backupText" placeholder="Backup text appears here, or paste backup text here to import." style="margin-top:10px"></textarea></div>
+              </section>
+            </main>
+          
+            <nav class="tabs"><button class="active" data-screen="mapScreen">Map</button><button data-screen="listScreen">List</button><button data-screen="routeScreen">Route</button></nav>
+          
+            <div id="saleModal" class="modal"><div class="sheet"><h2 id="modalTitle">Add sale</h2><input type="hidden" id="saleId"><label>Sale name</label><input id="saleTitle" placeholder="Example: Church rummage sale"><label>Address</label><input id="saleAddress" placeholder="123 Main St, Gladwin, MI"><div class="split"><div><label>Date</label><input id="saleDate" type="date"></div><div><label>Start time</label><input id="saleTime" type="time"></div></div><label>Notes / what to look for</label><textarea id="saleNotes" placeholder="Tools, kids clothes, reef tank stuff, furniture..."></textarea><div class="checkline"><input id="saleInclude" type="checkbox" checked><span>Include in route</span></div><div class="actions"><button id="saveSaleBtn">Save sale</button><button class="secondary" id="cancelSaleBtn">Cancel</button><button class="danger" id="deleteSaleBtn" style="display:none">Delete</button></div></div></div>
+          
+            <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+            <script>
+            const STORAGE_KEY = 'salescout_family_manual_v1';
+            let sales = [];
+            let filter = 'all';
+            let map, markersLayer;
+            const $ = id => document.getElementById(id);
+            const todayISO = () => new Date().toISOString().slice(0,10);
+            function uid(){ return 's_' + Math.random().toString(36).slice(2) + Date.now().toString(36); }
+            function load(){ try{ sales = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }catch(e){ sales=[]; } }
+            function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(sales)); renderAll(); }
+            function sortSales(list=sales){ return [...list].sort((a,b)=>((a.date||'9999')+(a.time||'')).localeCompare((b.date||'9999')+(b.time||''))); }
+            function inThisWeek(dateStr){ if(!dateStr) return false; const d=new Date(dateStr+'T12:00:00'); const now=new Date(); const day=now.getDay(); const start=new Date(now); start.setDate(now.getDate()-day); start.setHours(0,0,0,0); const end=new Date(start); end.setDate(start.getDate()+7); return d>=start && d<end; }
+            function filtered(){ let list = sortSales(); if(filter==='today') list=list.filter(s=>s.date===todayISO()); if(filter==='week') list=list.filter(s=>inThisWeek(s.date)); return list; }
+            function routeSales(){ return sortSales(sales).filter(s=>s.include!==false && !s.visited && s.address && s.address.trim()); }
+            function escapeHtml(str=''){ return String(str).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+            function dateLabel(s){ let parts=[]; if(s.date) parts.push(s.date); if(s.time) parts.push(s.time); return parts.join(' at ') || 'No time set'; }
+          
+            function initMap(){
+              try{
+                map = L.map('map', { zoomControl:true }).setView([44.0295,-84.4864], 9);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'&copy; OpenStreetMap' }).addTo(map);
+                markersLayer = L.layerGroup().addTo(map);
+                renderMap();
+              }catch(e){ $('map').innerHTML='<div class="empty">Map could not load, but list and Google Maps routing still work.</div>'; }
+            }
+            async function geocodeSale(s){
+              if(s.lat && s.lon) return s;
+              if(!s.address) return s;
+              try{
+                const res = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(s.address));
+                const data = await res.json();
+                if(data && data[0]){ s.lat=parseFloat(data[0].lat); s.lon=parseFloat(data[0].lon); }
+              }catch(e){}
+              return s;
+            }
+            async function geocodeHome(){
+              const q = $('homeInput').value || 'Gladwin, MI';
+              $('centerStatus').textContent = 'Finding ' + q + '...';
+              try{
+                const res = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(q));
+                const data = await res.json();
+                if(data && data[0] && map){ map.setView([parseFloat(data[0].lat), parseFloat(data[0].lon)], 10); $('centerStatus').textContent='Centered on ' + q; localStorage.setItem('salescout_home', q); }
+                else $('centerStatus').textContent='Could not find that place.';
+              }catch(e){ $('centerStatus').textContent='Could not use map search right now.'; }
+            }
+            async function renderMap(){
+              if(!map || !markersLayer) return;
+              markersLayer.clearLayers();
+              const bounds=[];
+              for(const s of sales){
+                await geocodeSale(s);
+                if(s.lat && s.lon){ const m=L.marker([s.lat,s.lon]).bindPopup('<b>'+escapeHtml(s.title||'Sale')+'</b><br>'+escapeHtml(s.address||'')+'<br>'+escapeHtml(dateLabel(s))); markersLayer.addLayer(m); bounds.push([s.lat,s.lon]); }
+              }
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(sales));
+              if(bounds.length) map.fitBounds(bounds, {padding:[32,32], maxZoom:12});
+            }
+          
+            function renderList(){
+              const list = filtered();
+              $('stats').textContent = sales.length + ' saved sale' + (sales.length===1?'':'s') + ' • ' + routeSales().length + ' in route';
+              const box=$('salesList');
+              if(!list.length){ box.innerHTML='<div class="card empty">No sales yet. Tap Add on the map screen.</div>'; return; }
+              box.innerHTML=list.map(s=>`<div class="sale ${s.visited?'visited':''}"><div class="saleHead"><div><div class="saleTitle">${escapeHtml(s.title||'Untitled sale')} ${s.include===false?'<span class="badge">Not routed</span>':''}</div><div class="addr">${escapeHtml(s.address||'No address')}</div><div class="meta">${escapeHtml(dateLabel(s))}</div></div></div>${s.notes?`<div class="notes">${escapeHtml(s.notes)}</div>`:''}<div class="actions"><button class="small secondary" onclick="editSale('${s.id}')">Edit</button><button class="small secondary" onclick="toggleVisited('${s.id}')">${s.visited?'Unvisit':'Visited'}</button><button class="small secondary" onclick="toggleInclude('${s.id}')">${s.include===false?'Add to route':'Remove from route'}</button><button class="small danger" onclick="removeSale('${s.id}')">Delete</button></div></div>`).join('');
+            }
+            function renderRoute(){
+              const rs=routeSales(); const box=$('routeStops');
+              if(!rs.length){ box.innerHTML='<div class="empty">No route stops yet. Add sales and leave them included.</div>'; return; }
+              box.innerHTML=rs.map((s,i)=>`<div class="routeStop"><div><b>${i+1}. ${escapeHtml(s.title||'Sale')}</b><small>${escapeHtml(s.address||'')}</small></div><div><button class="small secondary" onclick="moveRoute('${s.id}',-1)">↑</button><button class="small secondary" onclick="moveRoute('${s.id}',1)">↓</button></div></div>`).join('');
+            }
+            function renderAll(){ renderList(); renderRoute(); renderMap(); }
+          
+            function openModal(s=null){
+              $('saleModal').classList.add('show'); $('modalTitle').textContent=s?'Edit sale':'Add sale'; $('saleId').value=s?.id||''; $('saleTitle').value=s?.title||''; $('saleAddress').value=s?.address||''; $('saleDate').value=s?.date||todayISO(); $('saleTime').value=s?.time||''; $('saleNotes').value=s?.notes||''; $('saleInclude').checked=s?.include!==false; $('deleteSaleBtn').style.display=s?'inline-block':'none'; setTimeout(()=>$('saleTitle').focus(),100);
+            }
+            function closeModal(){ $('saleModal').classList.remove('show'); }
+            function editSale(id){ const s=sales.find(x=>x.id===id); if(s) openModal(s); }
+            function removeSale(id){ if(confirm('Delete this sale?')){ sales=sales.filter(s=>s.id!==id); save(); closeModal(); } }
+            function toggleVisited(id){ const s=sales.find(x=>x.id===id); if(s){s.visited=!s.visited; save();} }
+            function toggleInclude(id){ const s=sales.find(x=>x.id===id); if(s){s.include=s.include===false; save();} }
+            function moveRoute(id,dir){ const ordered=sortSales(); const idx=ordered.findIndex(s=>s.id===id); const other=ordered[idx+dir]; if(!other) return; const a=sales.find(s=>s.id===id); const b=sales.find(s=>s.id===other.id); const ad=a.date, at=a.time; a.date=b.date; a.time=b.time; b.date=ad; b.time=at; save(); }
+            function buildMapsUrl(){ const rs=routeSales().slice(0,10); if(!rs.length) return ''; const addrs=rs.map(s=>s.address.trim()); const dest=addrs[addrs.length-1]; const waypoints=addrs.slice(0,-1); let url='https://www.google.com/maps/dir/?api=1&travelmode=driving&destination='+encodeURIComponent(dest); if(waypoints.length) url+='&waypoints='+encodeURIComponent(waypoints.join('|')); return url; }
+            function openMaps(url){ if(!url){ alert('Add at least one sale with an address first.'); return; } if(window.SaleScoutAndroid && window.SaleScoutAndroid.openMaps){ window.SaleScoutAndroid.openMaps(url); } else { window.open(url,'_blank'); } }
+          
+            $('openAddBtn').onclick=()=>openModal(); $('cancelSaleBtn').onclick=closeModal; $('saleModal').addEventListener('click',e=>{ if(e.target.id==='saleModal') closeModal(); });
+            $('saveSaleBtn').onclick=()=>{ const id=$('saleId').value||uid(); const existing=sales.find(s=>s.id===id)||{id}; existing.title=$('saleTitle').value.trim()||'Yard sale'; existing.address=$('saleAddress').value.trim(); existing.date=$('saleDate').value; existing.time=$('saleTime').value; existing.notes=$('saleNotes').value.trim(); existing.include=$('saleInclude').checked; existing.lat=null; existing.lon=null; if(!sales.find(s=>s.id===id)) sales.push(existing); save(); closeModal(); };
+            $('deleteSaleBtn').onclick=()=>removeSale($('saleId').value);
+            $('centerBtn').onclick=geocodeHome; $('homeInput').value=localStorage.getItem('salescout_home')||'Gladwin, MI';
+            document.querySelectorAll('[data-screen]').forEach(btn=>btn.onclick=()=>{ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active')); $(btn.dataset.screen).classList.add('active'); btn.classList.add('active'); if(btn.dataset.screen==='mapScreen' && map) setTimeout(()=>map.invalidateSize(),200); });
+            document.querySelectorAll('[data-filter]').forEach(btn=>btn.onclick=()=>{ filter=btn.dataset.filter; renderList(); });
+            $('clearVisitedBtn').onclick=()=>{ if(confirm('Delete all visited sales?')){ sales=sales.filter(s=>!s.visited); save(); } };
+            $('openRouteBtn').onclick=()=>openMaps(buildMapsUrl()); $('copyRouteBtn').onclick=()=>{ $('routeLinkBox').textContent=buildMapsUrl()||'No route yet.'; };
+            $('exportBtn').onclick=()=>{ $('backupText').value=JSON.stringify({version:1, exported:new Date().toISOString(), sales}, null, 2); $('backupText').focus(); $('backupText').select(); };
+            $('importBtn').onclick=()=>{ try{ const data=JSON.parse($('backupText').value); if(Array.isArray(data.sales)){ if(confirm('Replace your current list with this backup?')){ sales=data.sales; save(); alert('Imported.'); } } else alert('That backup text does not look right.'); }catch(e){ alert('Could not read backup text.'); } };
+            window.editSale=editSale; window.removeSale=removeSale; window.toggleVisited=toggleVisited; window.toggleInclude=toggleInclude; window.moveRoute=moveRoute;
+            load(); initMap(); renderAll();
+            </script>
+          </body>
+          </html>
           EOF
 
       - name: Set up Java 17
@@ -458,5 +450,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: SaleScout-debug-apk
+          name: SaleScout-family-manual-apk
           path: app/build/outputs/apk/debug/app-debug.apk
