@@ -1,4 +1,4 @@
-name: Build SaleScout Current APK
+name: Build and Publish SaleScout Hub
 
 on:
   workflow_dispatch:
@@ -6,37 +6,41 @@ on:
     branches:
       - main
       - master
+    paths:
+      - 'SaleScout_Current.zip'
+      - 'SaleScout_iPhone_WebApp_Current.zip'
+      - '.github/workflows/build-apk.yml'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: salescout-pages
+  cancel-in-progress: true
 
 jobs:
-  build:
-    name: Build SaleScout Current APK
+  build-and-publish:
+    name: Build Android APK and publish family hub
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Check out repo
         uses: actions/checkout@v4
 
-      - name: Clean workspace and unzip current app
+      - name: Check required ZIP files
         shell: bash
         run: |
-          echo "Files in repo root:"
+          echo "Repo root files:"
           ls -la
-
-          echo "Checking for SaleScout_Current.zip..."
           test -f SaleScout_Current.zip
-
-          echo "Removing old extracted app files so this build cannot reuse leftovers..."
-          rm -rf app build.gradle settings.gradle gradle gradlew gradlew.bat salescout-debug.keystore
-
-          echo "Testing ZIP..."
+          test -f SaleScout_iPhone_WebApp_Current.zip
           unzip -t SaleScout_Current.zip
-
-          echo "Unzipping current SaleScout app..."
-          unzip -o SaleScout_Current.zip
-
-          echo "Checking Android project files..."
-          test -f settings.gradle
-          test -f app/build.gradle
+          unzip -t SaleScout_iPhone_WebApp_Current.zip
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
@@ -50,11 +54,110 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build APK
-        run: gradle --no-daemon assembleDebug
+      - name: Unzip Android project
+        shell: bash
+        run: |
+          rm -rf android_project public
+          mkdir android_project
+          unzip -o SaleScout_Current.zip -d android_project
+          test -f android_project/settings.gradle
+          test -f android_project/app/build.gradle
 
-      - name: Upload APK
+      - name: Build Android APK
+        shell: bash
+        run: |
+          gradle --no-daemon -p android_project assembleDebug
+          test -f android_project/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Prepare public hub website
+        shell: bash
+        run: |
+          mkdir -p public/iphone
+          unzip -o SaleScout_iPhone_WebApp_Current.zip -d public/iphone
+          cp android_project/app/build/outputs/apk/debug/app-debug.apk public/SaleScout.apk
+          cp public/iphone/icons/apple-touch-icon.png public/salescout-icon.png || true
+
+          cat > public/index.html <<'HTML'
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <title>SaleScout Family App</title>
+            <link rel="icon" href="salescout-icon.png" />
+            <style>
+              :root { color-scheme: light; --green:#0f7a3b; --green2:#0b5f2e; --bg:#f5f7f5; --card:#fff; --text:#102014; --muted:#5f6f64; }
+              * { box-sizing:border-box; }
+              body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:linear-gradient(180deg,#eaf5ec,var(--bg)); color:var(--text); }
+              .wrap { max-width:760px; margin:0 auto; padding:28px 16px 40px; }
+              .hero { text-align:center; padding:18px 8px 8px; }
+              .icon { width:92px; height:92px; border-radius:22px; box-shadow:0 10px 24px rgba(0,0,0,.14); }
+              h1 { margin:14px 0 6px; font-size:2rem; line-height:1.1; }
+              .sub { margin:0 auto; color:var(--muted); font-size:1.05rem; max-width:570px; }
+              .grid { display:grid; grid-template-columns:1fr; gap:14px; margin-top:22px; }
+              @media (min-width:680px){ .grid{ grid-template-columns:1fr 1fr; } }
+              .card { background:var(--card); border:1px solid #dce8df; border-radius:18px; padding:18px; box-shadow:0 8px 20px rgba(16,32,20,.08); }
+              .card h2 { margin:0 0 8px; font-size:1.25rem; }
+              .card p { color:var(--muted); margin:0 0 14px; line-height:1.38; }
+              .btn { display:block; text-align:center; text-decoration:none; font-weight:800; background:var(--green); color:white; padding:14px 16px; border-radius:14px; box-shadow:0 7px 14px rgba(15,122,59,.22); }
+              .btn:active { background:var(--green2); transform:translateY(1px); }
+              .steps { margin-top:12px; padding-left:20px; color:#304637; line-height:1.45; }
+              .tiny { font-size:.92rem; color:var(--muted); margin-top:18px; text-align:center; }
+              code { background:#eef4ef; padding:2px 5px; border-radius:6px; }
+            </style>
+          </head>
+          <body>
+            <main class="wrap">
+              <section class="hero">
+                <img class="icon" src="salescout-icon.png" alt="SaleScout icon" />
+                <h1>SaleScout Family App</h1>
+                <p class="sub">Use one page for Android and iPhone. Android installs the APK. iPhone opens the web app and adds it to the Home Screen.</p>
+              </section>
+
+              <section class="grid">
+                <article class="card">
+                  <h2>Android</h2>
+                  <p>Download the app installer, open it, and allow installs from your browser or Files app if Android asks.</p>
+                  <a class="btn" href="SaleScout.apk" download>Download Android APK</a>
+                  <ol class="steps">
+                    <li>Tap the button.</li>
+                    <li>Open <code>SaleScout.apk</code>.</li>
+                    <li>Tap <strong>Install</strong>.</li>
+                  </ol>
+                </article>
+
+                <article class="card">
+                  <h2>iPhone</h2>
+                  <p>Open the iPhone web app in Safari, then add it to the Home Screen so it looks like an app.</p>
+                  <a class="btn" href="iphone/">Open iPhone Web App</a>
+                  <ol class="steps">
+                    <li>Open the button in Safari.</li>
+                    <li>Tap Share.</li>
+                    <li>Tap <strong>Add to Home Screen</strong>.</li>
+                  </ol>
+                </article>
+              </section>
+
+              <p class="tiny">SaleScout is for personal/family use. Replace <code>SaleScout_Current.zip</code> and rebuild when you want to publish an update.</p>
+            </main>
+          </body>
+          </html>
+          HTML
+
+      - name: Upload Android APK artifact too
         uses: actions/upload-artifact@v4
         with:
           name: SaleScout-current-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: public/SaleScout.apk
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
