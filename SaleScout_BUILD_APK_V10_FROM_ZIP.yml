@@ -20,7 +20,8 @@ jobs:
         shell: bash
         run: |
           rm -rf app build.gradle settings.gradle salescout-debug.keystore
-          unzip -o SaleScout_Project_V10_Unlocked_Clean_Photo_Icon.zip
+          test -f SaleScout_Project_V12_Stacked_OCR_Icon.zip
+          unzip -o SaleScout_Project_V12_Stacked_OCR_Icon.zip
           ls -la
           test -f settings.gradle
           test -f app/build.gradle
@@ -43,5 +44,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: SaleScout-v10-unlocked-clean-photo-icon-apk
+          name: SaleScout-v12-stacked-ocr-icon-apk
           path: app/build/outputs/apk/debug/app-debug.apk
