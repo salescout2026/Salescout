@@ -144,6 +144,7 @@ jobs:
           package com.salescout.app;
 
           import android.app.Activity;
+          import android.app.AlertDialog;
           import android.content.ActivityNotFoundException;
           import android.content.Intent;
           import android.graphics.Color;
@@ -153,8 +154,10 @@ jobs:
           import android.view.ViewGroup;
           import android.view.Window;
           import android.webkit.JavascriptInterface;
+          import android.webkit.JsResult;
           import android.webkit.WebResourceRequest;
           import android.webkit.WebSettings;
+          import android.webkit.WebChromeClient;
           import android.webkit.WebView;
           import android.webkit.WebViewClient;
           import android.widget.FrameLayout;
@@ -205,6 +208,28 @@ jobs:
                   }
 
                   webView.addJavascriptInterface(new MapsBridge(), "SaleScoutAndroid");
+                  webView.setWebChromeClient(new WebChromeClient() {
+                      @Override
+                      public boolean onJsAlert(WebView view, String url, String message, final JsResult result) {
+                          new AlertDialog.Builder(MainActivity.this)
+                                  .setMessage(message)
+                                  .setPositiveButton(android.R.string.ok, (dialog, which) -> result.confirm())
+                                  .setOnCancelListener(dialog -> result.cancel())
+                                  .show();
+                          return true;
+                      }
+
+                      @Override
+                      public boolean onJsConfirm(WebView view, String url, String message, final JsResult result) {
+                          new AlertDialog.Builder(MainActivity.this)
+                                  .setMessage(message)
+                                  .setPositiveButton("OK", (dialog, which) -> result.confirm())
+                                  .setNegativeButton("Cancel", (dialog, which) -> result.cancel())
+                                  .setOnCancelListener(dialog -> result.cancel())
+                                  .show();
+                          return true;
+                      }
+                  });
                   webView.setWebViewClient(new WebViewClient() {
                       @Override
                       public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -589,7 +614,7 @@ jobs:
             async function geocodeSale(s){
               if(!s.address.trim()) return s;
               const searchAddress = addressForSearch(s.address);
-              if(s.lat && s.lon && s.geocodedAddress===searchAddress && s.geocodeVersion===4) return s;
+              if(s.lat && s.lon && s.geocodedAddress===searchAddress && s.geocodeVersion===5) return s;
               try{
                 const base='https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=us&viewbox=-86.2,45.4,-82.8,43.0&q=';
                 const res=await fetch(base + encodeURIComponent(searchAddress));
@@ -598,7 +623,7 @@ jobs:
                 if(!choices.length) choices=data||[];
                 choices=choices.map(x=>({...x, _miles:milesFromGladwin(parseFloat(x.lat), parseFloat(x.lon))})).sort((a,b)=>a._miles-b._miles);
                 const best=choices[0];
-                if(best){ s.lat=parseFloat(best.lat); s.lon=parseFloat(best.lon); s.geocodedAddress=searchAddress; s.geocodeVersion=4; saveOnly(); }
+                if(best){ s.lat=parseFloat(best.lat); s.lon=parseFloat(best.lon); s.geocodedAddress=searchAddress; s.geocodeVersion=5; saveOnly(); }
               }catch(e){}
               return s;
             }
@@ -650,7 +675,7 @@ jobs:
             function closeModal(){ document.body.classList.remove('modal-open'); $('saleModal').classList.remove('show'); $('saleModal').setAttribute('aria-hidden','true'); }
             function editSale(id){ const s=sales.find(x=>x.id===id); if(s) openModal(s); }
             function nextOrder(){ return sales.reduce((max,s)=>Math.max(max,Number(s.order)||0),0)+1; }
-            function removeSale(id){ if(confirm('Delete this sale?')){ sales=sales.filter(s=>s.id!==id); save(); closeModal(); } }
+            function removeSale(id){ if(!id){ alert('No saved sale selected to delete.'); return; } if(confirm('Delete this sale?')){ sales=sales.filter(s=>s.id!==id); save(); closeModal(); } }
             function toggleVisited(id){ const s=sales.find(x=>x.id===id); if(s){s.visited=!s.visited; save();} }
             function toggleInclude(id){ const s=sales.find(x=>x.id===id); if(s){s.include=s.include===false; save();} }
             function moveRoute(id,dir){
@@ -688,7 +713,7 @@ jobs:
             document.querySelectorAll('[data-filter]').forEach(btn=>btn.onclick=()=>{ filter=btn.dataset.filter; renderList(); });
             $('clearVisitedBtn').onclick=()=>{ if(confirm('Delete all visited sales?')){ sales=sales.filter(s=>!s.visited); save(); } };
             $('openRouteBtn').onclick=()=>openMaps(buildMapsUrl()); $('copyRouteBtn').onclick=()=>{ const box=$('routeLinkBox'); box.style.display='block'; box.textContent=buildMapsUrl()||'No route yet.'; };
-            $('exportBtn').onclick=()=>{ $('backupText').value=JSON.stringify({version:4, exported:new Date().toISOString(), sales:sales.map(normalizeSale)}, null, 2); $('backupText').focus(); $('backupText').select(); };
+            $('exportBtn').onclick=()=>{ $('backupText').value=JSON.stringify({version:5, exported:new Date().toISOString(), sales:sales.map(normalizeSale)}, null, 2); $('backupText').focus(); $('backupText').select(); };
             $('importBtn').onclick=()=>{ try{ const data=JSON.parse($('backupText').value); if(Array.isArray(data.sales)){ if(confirm('Replace your current list with this backup?')){ sales=data.sales.map(normalizeSale); save(); alert('Imported.'); } } else alert('That backup text does not look right.'); }catch(e){ alert('Could not read backup text.'); } };
             window.editSale=editSale; window.removeSale=removeSale; window.toggleVisited=toggleVisited; window.toggleInclude=toggleInclude; window.moveRoute=moveRoute; window.openOneMap=openOneMap;
             load(); initMap(); renderAll();
@@ -724,5 +749,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: SaleScout-family-parser-v4-apk
+          name: SaleScout-family-parser-v5-delete-fix-apk
           path: app/build/outputs/apk/debug/app-debug.apk
