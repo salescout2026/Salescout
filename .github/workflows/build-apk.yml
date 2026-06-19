@@ -16,7 +16,7 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v4
 
-      - name: Create SaleScout family manual Android app v2
+      - name: Create SaleScout family manual Android app v3
         shell: bash
         run: |
           mkdir -p app/src/main/java/com/salescout/app
@@ -66,8 +66,8 @@ jobs:
                   applicationId 'com.salescout.family'
                   minSdk 23
                   targetSdk 35
-                  versionCode 20
-                  versionName '2.0-family-manual-fixed'
+                  versionCode 30
+                  versionName '3.0-family-post-parser'
               }
 
               signingConfigs {
@@ -323,6 +323,11 @@ jobs:
               .sale{border:1px solid var(--line);border-radius:15px;padding:12px;margin:10px 0;background:white}.saleHead{display:flex;gap:10px;justify-content:space-between}.saleTitle{font-size:18px;font-weight:900}.addr{color:#23527a;font-weight:750;margin-top:3px}.meta{font-size:13px;color:var(--muted);margin-top:4px}.notes{white-space:pre-wrap;margin-top:8px;font-size:14px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.badge{display:inline-block;font-size:12px;font-weight:900;padding:4px 8px;border-radius:999px;background:#eaf3eb;color:#1c673b;margin-left:4px}.visited .saleTitle,.visited .addr,.visited .notes{opacity:.55;text-decoration:line-through}.checkline{display:flex;align-items:center;gap:9px;margin-top:11px;font-size:15px}.checkline input{width:20px;height:20px}
               .topTools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}.stats{font-size:14px;color:var(--muted);font-weight:750}.routeBox{background:#eef7ef;border:1px solid #d2e7d5;border-radius:14px;padding:12px;margin:10px 0}.routeStop{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #d8eadb}.routeStop:last-child{border-bottom:0}.routeStop b{font-size:14px}.routeStop small{display:block;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:230px}.warn{background:#fff7e6;border:1px solid #f0d69b;color:#664500;border-radius:12px;padding:10px;margin-top:10px;font-size:14px}
               .modal{position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,.54);display:none;align-items:flex-end}.modal.show{display:flex}.sheet{position:relative;z-index:20001;background:#fff;width:100%;max-width:760px;margin:0 auto;border-radius:24px 24px 0 0;padding:16px 14px calc(20px + env(safe-area-inset-bottom));max-height:calc(100dvh - 18px);overflow:auto;box-shadow:0 -8px 30px rgba(0,0,0,.22)}.sheet h2{margin:0 0 8px}.split{display:grid;grid-template-columns:1fr 1fr;gap:10px}.formActions{position:sticky;bottom:0;background:linear-gradient(rgba(255,255,255,.85),#fff 30%);padding-top:10px;margin-top:8px}.smallText{font-size:12px;color:var(--muted);margin-top:4px}.linkbox{word-break:break-word;background:#f4f8f4;border:1px solid var(--line);padding:10px;border-radius:12px;margin-top:10px;display:none}
+
+              .parseBox{background:#f2f8f3;border:1px solid #d3e6d6;border-radius:16px;padding:12px;margin:8px 0 12px}
+              .parseBox textarea{min-height:120px;background:#fbfffb}
+              .parseStatus{font-size:13px;color:#285b36;font-weight:750;margin-top:8px;line-height:1.35}
+              .divider{height:1px;background:var(--line);margin:12px 0}
               @media(min-width:700px){.modal{align-items:center}.sheet{border-radius:24px;max-width:620px}.tabs{left:50%;transform:translateX(-50%);max-width:760px;border-radius:22px 22px 0 0}.routeStop small{max-width:480px}}
             </style>
           </head>
@@ -354,11 +359,11 @@ jobs:
 
             <nav class="tabs"><button class="active" data-screen="mapScreen">Map</button><button data-screen="listScreen">List</button><button data-screen="routeScreen">Route</button></nav>
 
-            <div id="saleModal" class="modal" aria-hidden="true"><div class="sheet"><h2 id="modalTitle">Add sale</h2><input type="hidden" id="saleId"><label>Sale name</label><input id="saleTitle" placeholder="Example: Church rummage sale"><label>Address</label><input id="saleAddress" placeholder="123 Main St, Gladwin, MI" autocomplete="street-address"><div class="smallText">The address is what Google Maps uses for routing.</div><div class="split"><div><label>Date</label><input id="saleDate" type="date"></div><div><label>Start time</label><input id="saleTime" type="time"></div></div><label>Notes / what to look for</label><textarea id="saleNotes" placeholder="Tools, kids clothes, reef tank stuff, furniture..."></textarea><div class="checkline"><input id="saleInclude" type="checkbox" checked><span>Include in route</span></div><div class="actions formActions"><button id="saveSaleBtn">Save sale</button><button class="secondary" id="cancelSaleBtn">Cancel</button><button class="danger" id="deleteSaleBtn" style="display:none">Delete</button></div></div></div>
+            <div id="saleModal" class="modal" aria-hidden="true"><div class="sheet"><h2 id="modalTitle">Add sale</h2><input type="hidden" id="saleId"><div class="parseBox"><label>Paste Facebook post</label><textarea id="postPaste" placeholder="Copy the whole Facebook yard-sale post, then paste it here. Example: Multi-family garage sale Friday 9-4 at 123 Main St, Gladwin. Tools, kids clothes, furniture..."></textarea><div class="actions"><button class="secondary" id="parsePostBtn" type="button">Break down post</button><button class="secondary" id="clearPostBtn" type="button">Clear pasted text</button></div><div id="parseStatus" class="parseStatus">Paste a post, tap Break down post, then check the fields below before saving.</div></div><div class="divider"></div><label>Sale name</label><input id="saleTitle" placeholder="Example: Church rummage sale"><label>Address</label><input id="saleAddress" placeholder="123 Main St, Gladwin, MI" autocomplete="street-address"><div class="smallText">The address is what Google Maps uses for routing. Check this field after parsing a post.</div><div class="split"><div><label>Date</label><input id="saleDate" type="date"></div><div><label>Start time</label><input id="saleTime" type="time"></div></div><label>Notes / what to look for</label><textarea id="saleNotes" placeholder="Tools, kids clothes, reef tank stuff, furniture..."></textarea><div class="checkline"><input id="saleInclude" type="checkbox" checked><span>Include in route</span></div><div class="actions formActions"><button id="saveSaleBtn">Save sale</button><button class="secondary" id="cancelSaleBtn">Cancel</button><button class="danger" id="deleteSaleBtn" style="display:none">Delete</button></div></div></div>
 
             <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
             <script>
-            const STORAGE_KEY = 'salescout_family_manual_v2';
+            const STORAGE_KEY = 'salescout_family_manual_v2'; // keep v2 key so your saved sales stay after updating
             const LEGACY_KEYS = ['salescout_family_manual_v1'];
             let sales = [];
             let filter = 'all';
@@ -384,6 +389,113 @@ jobs:
             function filtered(){ let list=sortSales(); if(filter==='today') list=list.filter(s=>s.date===todayISO()); if(filter==='week') list=list.filter(s=>inThisWeek(s.date)); return list; }
             function escapeHtml(str){ return String(str||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
             function dateLabel(s){ let parts=[]; if(s.date) parts.push(s.date); if(s.time) parts.push(s.time); return parts.join(' at ') || 'No time set'; }
+
+
+
+            function cleanPostText(text){
+              return String(text||'').replace(/\r/g,'\n').replace(/[ \t]+/g,' ').replace(/\n{3,}/g,'\n\n').trim();
+            }
+            function isoFromParts(year, month, day){
+              const d = new Date(year, month-1, day, 12, 0, 0);
+              if(isNaN(d.getTime())) return '';
+              const now = new Date();
+              // If no year was obvious and the date is far in the past, use next year.
+              if(d < new Date(now.getFullYear(), now.getMonth(), now.getDate()-7) && year === now.getFullYear()) d.setFullYear(year+1);
+              d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
+              return d.toISOString().slice(0,10);
+            }
+            function nextWeekdayISO(dayIndex){
+              const d = new Date();
+              let diff = (dayIndex - d.getDay() + 7) % 7;
+              if(diff === 0) diff = 0;
+              d.setDate(d.getDate()+diff);
+              d.setHours(12,0,0,0);
+              d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
+              return d.toISOString().slice(0,10);
+            }
+            function parsePostDate(text){
+              const t = ' ' + text.toLowerCase() + ' ';
+              if(/\btoday\b/.test(t)) return {iso:todayISO(), label:'today'};
+              if(/\btomorrow\b/.test(t)){
+                const d=new Date(); d.setDate(d.getDate()+1); d.setHours(12,0,0,0); d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
+                return {iso:d.toISOString().slice(0,10), label:'tomorrow'};
+              }
+              const monthNames = {jan:1,january:1,feb:2,february:2,mar:3,march:3,apr:4,april:4,may:5,jun:6,june:6,jul:7,july:7,aug:8,august:8,sep:9,sept:9,september:9,oct:10,october:10,nov:11,november:11,dec:12,december:12};
+              let m = text.match(/\b(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t|tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?\s+(\d{1,2})(?:st|nd|rd|th)?(?:,?\s*(20\d{2}|\d{2}))?\b/i);
+              if(m){
+                let y = m[3] ? Number(m[3]) : new Date().getFullYear(); if(y<100) y+=2000;
+                return {iso:isoFromParts(y, monthNames[m[1].toLowerCase().replace('.','')], Number(m[2])), label:m[0]};
+              }
+              m = text.match(/\b(\d{1,2})[\/\-.](\d{1,2})(?:[\/\-.](20\d{2}|\d{2}))?\b/);
+              if(m){
+                let y = m[3] ? Number(m[3]) : new Date().getFullYear(); if(y<100) y+=2000;
+                return {iso:isoFromParts(y, Number(m[1]), Number(m[2])), label:m[0]};
+              }
+              const days = [['sunday',0],['sun',0],['monday',1],['mon',1],['tuesday',2],['tues',2],['tue',2],['wednesday',3],['wed',3],['thursday',4],['thurs',4],['thu',4],['friday',5],['fri',5],['saturday',6],['sat',6]];
+              for(const [name, idx] of days){ if(new RegExp('\\b'+name+'\\b','i').test(text)) return {iso:nextWeekdayISO(idx), label:name}; }
+              return {iso:'', label:''};
+            }
+            function timeTo24(hour, minute, ampm, endAmpm){
+              hour = Number(hour); minute = minute ? Number(minute) : 0;
+              let ap = (ampm||'').toLowerCase().replace(/\./g,'');
+              const end = (endAmpm||'').toLowerCase().replace(/\./g,'');
+              if(!ap && end === 'pm' && hour >= 7 && hour <= 11) ap = 'am';
+              if(!ap && end === 'am' && hour <= 11) ap = 'am';
+              if(ap === 'pm' && hour < 12) hour += 12;
+              if(ap === 'am' && hour === 12) hour = 0;
+              if(!ap && hour >= 1 && hour <= 6) hour += 12; // most sale posts with 1-6 mean afternoon unless AM is written
+              if(hour < 0 || hour > 23) return '';
+              return String(hour).padStart(2,'0') + ':' + String(minute).padStart(2,'0');
+            }
+            function parsePostTime(text){
+              const re = /\b(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?)?\s*(?:-|–|—|to|until|til|through)\s*(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?)\b/i;
+              let m = text.match(re);
+              if(m) return {time:timeTo24(m[1],m[2],m[3],m[6]), label:m[0]};
+              m = text.match(/\b(?:starts?\s*(?:at)?|from|time:?|open:?|sale:?|hours:?)\s*(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?)\b/i) || text.match(/\b(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?)\b/i);
+              if(m) return {time:timeTo24(m[1],m[2],m[3],''), label:m[0]};
+              return {time:'', label:''};
+            }
+            function looksLikeAddress(line){
+              return /\b\d{1,6}\s+(?:[a-z0-9.'-]+\s+){0,6}(?:street|st\.?|road|rd\.?|avenue|ave\.?|drive|dr\.?|lane|ln\.?|court|ct\.?|circle|cir\.?|boulevard|blvd\.?|trail|trl\.?|place|pl\.?|way|highway|hwy\.?|m-?\d+|us-?\d+)\b/i.test(line);
+            }
+            function parsePostAddress(text){
+              const lines = cleanPostText(text).split('\n').map(l=>l.trim()).filter(Boolean);
+              const labeled = lines.find(l=>/^(address|location|where|located at|located|place)\s*[:\-]/i.test(l) && (looksLikeAddress(l) || /\bmi\b|michigan|gladwin|beaverton|clare|harrison|midland|mount pleasant|mt pleasant|west branch/i.test(l)));
+              if(labeled) return labeled.replace(/^(address|location|where|located at|located|place)\s*[:\-]\s*/i,'').trim();
+              const addrLine = lines.find(looksLikeAddress);
+              if(addrLine) return addrLine.replace(/^(address|location|where|located at|located|place)\s*[:\-]\s*/i,'').replace(/\s{2,}/g,' ').trim();
+              const city = text.match(/\b(Gladwin|Beaverton|Clare|Harrison|Midland|Mount Pleasant|Mt\.? Pleasant|West Branch)\b\s*,?\s*(MI|Michigan)?\b/i);
+              if(city) return city[1].replace(/Mt\.?/i,'Mount') + ', MI';
+              return '';
+            }
+            function parsePostTitle(text){
+              const lines = cleanPostText(text).split('\n').map(l=>l.trim()).filter(Boolean);
+              const saleLine = lines.find(l=>/\b(garage|yard|moving|estate|rummage|barn|tag|multi[ -]?family|sale)\b/i.test(l) && l.length <= 90 && !looksLikeAddress(l));
+              if(saleLine) return saleLine.replace(/^(title|event)\s*[:\-]\s*/i,'').trim();
+              const first = lines.find(l=>l.length >= 4 && l.length <= 70 && !looksLikeAddress(l) && !/^\d/.test(l) && !/^(date|time|when|where|address|location)\s*[:\-]/i.test(l));
+              return first || 'Facebook yard sale';
+            }
+            function parseFacebookPost(text){
+              const post = cleanPostText(text);
+              if(!post){ alert('Paste the Facebook post first.'); return; }
+              const date = parsePostDate(post);
+              const time = parsePostTime(post);
+              const address = parsePostAddress(post);
+              const title = parsePostTitle(post);
+              const found = [];
+              if(title){ $('saleTitle').value = title; found.push('title'); }
+              if(address){ $('saleAddress').value = address; found.push('address'); }
+              if(date.iso){ $('saleDate').value = date.iso; found.push('date'); }
+              if(time.time){ $('saleTime').value = time.time; found.push('start time'); }
+              const noteLines = [];
+              if(date.label) noteLines.push('Post date text: '+date.label);
+              if(time.label) noteLines.push('Post time text: '+time.label);
+              noteLines.push('Copied Facebook post:');
+              noteLines.push(post);
+              $('saleNotes').value = noteLines.join('\n');
+              $('parseStatus').textContent = found.length ? ('Filled: '+found.join(', ')+'. Check the address/date before saving.') : 'I could not confidently find address/date/time. I put the post in notes so you can fill the fields manually.';
+              if(!address) $('saleAddress').focus();
+            }
 
             function initMap(){
               try{
@@ -447,8 +559,8 @@ jobs:
             function openModal(s=null){
               document.body.classList.add('modal-open');
               $('saleModal').classList.add('show'); $('saleModal').setAttribute('aria-hidden','false');
-              $('modalTitle').textContent=s?'Edit sale':'Add sale'; $('saleId').value=s?.id||''; $('saleTitle').value=s?.title||''; $('saleAddress').value=s?.address||''; $('saleDate').value=s?.date||todayISO(); $('saleTime').value=s?.time||''; $('saleNotes').value=s?.notes||''; $('saleInclude').checked=s?.include!==false; $('deleteSaleBtn').style.display=s?'inline-block':'none';
-              setTimeout(()=>$('saleTitle').focus(),150);
+              $('modalTitle').textContent=s?'Edit sale':'Add sale'; $('saleId').value=s?.id||''; $('saleTitle').value=s?.title||''; $('saleAddress').value=s?.address||''; $('saleDate').value=s?.date||todayISO(); $('saleTime').value=s?.time||''; $('saleNotes').value=s?.notes||''; $('saleInclude').checked=s?.include!==false; $('deleteSaleBtn').style.display=s?'inline-block':'none'; $('postPaste').value=''; $('parseStatus').textContent='Paste a post, tap Break down post, then check the fields below before saving.';
+              setTimeout(()=>$(s?'saleTitle':'postPaste').focus(),150);
             }
             function closeModal(){ document.body.classList.remove('modal-open'); $('saleModal').classList.remove('show'); $('saleModal').setAttribute('aria-hidden','true'); }
             function editSale(id){ const s=sales.find(x=>x.id===id); if(s) openModal(s); }
@@ -474,7 +586,7 @@ jobs:
             function openMaps(url){ if(!url){ alert('Add at least one sale with an address first.'); return; } if(window.SaleScoutAndroid && window.SaleScoutAndroid.openMaps){ window.SaleScoutAndroid.openMaps(url); } else { window.open(url,'_blank'); } }
             function openOneMap(id){ const s=sales.find(x=>x.id===id); if(s) openMaps(buildMapsUrl(s.address)); }
 
-            $('openAddBtn').onclick=()=>openModal(); $('cancelSaleBtn').onclick=closeModal; $('saleModal').addEventListener('click',e=>{ if(e.target.id==='saleModal') closeModal(); });
+            $('openAddBtn').onclick=()=>openModal(); $('cancelSaleBtn').onclick=closeModal; $('parsePostBtn').onclick=()=>parseFacebookPost($('postPaste').value); $('clearPostBtn').onclick=()=>{ $('postPaste').value=''; $('parseStatus').textContent='Paste a post, tap Break down post, then check the fields below before saving.'; $('postPaste').focus(); }; $('saleModal').addEventListener('click',e=>{ if(e.target.id==='saleModal') closeModal(); });
             $('saveSaleBtn').onclick=()=>{
               const id=$('saleId').value||uid(); const addr=$('saleAddress').value.trim();
               if(!addr){ alert('Type an address first so Google Maps can route to it.'); $('saleAddress').focus(); return; }
@@ -491,7 +603,7 @@ jobs:
             document.querySelectorAll('[data-filter]').forEach(btn=>btn.onclick=()=>{ filter=btn.dataset.filter; renderList(); });
             $('clearVisitedBtn').onclick=()=>{ if(confirm('Delete all visited sales?')){ sales=sales.filter(s=>!s.visited); save(); } };
             $('openRouteBtn').onclick=()=>openMaps(buildMapsUrl()); $('copyRouteBtn').onclick=()=>{ const box=$('routeLinkBox'); box.style.display='block'; box.textContent=buildMapsUrl()||'No route yet.'; };
-            $('exportBtn').onclick=()=>{ $('backupText').value=JSON.stringify({version:2, exported:new Date().toISOString(), sales:sales.map(normalizeSale)}, null, 2); $('backupText').focus(); $('backupText').select(); };
+            $('exportBtn').onclick=()=>{ $('backupText').value=JSON.stringify({version:3, exported:new Date().toISOString(), sales:sales.map(normalizeSale)}, null, 2); $('backupText').focus(); $('backupText').select(); };
             $('importBtn').onclick=()=>{ try{ const data=JSON.parse($('backupText').value); if(Array.isArray(data.sales)){ if(confirm('Replace your current list with this backup?')){ sales=data.sales.map(normalizeSale); save(); alert('Imported.'); } } else alert('That backup text does not look right.'); }catch(e){ alert('Could not read backup text.'); } };
             window.editSale=editSale; window.removeSale=removeSale; window.toggleVisited=toggleVisited; window.toggleInclude=toggleInclude; window.moveRoute=moveRoute; window.openOneMap=openOneMap;
             load(); initMap(); renderAll();
@@ -527,5 +639,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: SaleScout-family-manual-v2-apk
+          name: SaleScout-family-post-parser-v3-apk
           path: app/build/outputs/apk/debug/app-debug.apk
