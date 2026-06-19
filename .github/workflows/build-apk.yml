@@ -1,4 +1,4 @@
-name: Build SaleScout Family APK v7.1 Fixed Compact Photo
+name: Build SaleScout Family APK v7.3 Fixed YAML Compact Photo
 
 on:
   workflow_dispatch:
@@ -16,7 +16,7 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v4
 
-      - name: Create SaleScout family app v7 compact photo icon
+      - name: Create SaleScout family app v7.3 compact photo icon
         shell: bash
         run: |
           mkdir -p app/src/main/java/com/salescout/app
@@ -1505,5 +1505,15 @@ jobs:
           EOF_ROOT_GRADLE
 
           cat > salescout-debug.keystore.b64 <<'EOF_KEYSTORE'
-          MIIK1AIBAzCCCn4GCSqGSIb3DQEHAaCCCm8EggprMIIKZzCCBb4GCSqGSIb3DQEHAaCCBa8EggWrMIIFpzCCBaMGCyqGSIb3DQEMCgECoIIFQDCCBTwwZgYJKoZIhvcNAQUNMFkwOAYJKoZIhvcNAQUMMCsEFEOwJYJ1woK+Xz0WnbC5eoSZ6LYhAgInEAIBIDAMBggqhkiG9w0CCQUAMB0GCWCGSAFlAwQBKgQQwbkC7GKguUGofARmOh0A2wSCBNDAC7RDTKW37qNwooGWI+Hee44Ljxfaq5E3lmlwkasuPyMsvbseCrlgC5PwL7Tx3YKnTUd3IrQyeP5i8ybbaoR3UHJlGonbDHGoZLlZaCsZVOw0bsulOOE9lAjk5rzsJ2SZkA4Ds3jdjGbZhI7M8us1LeF8AhG9RZAyPUMUUHaAbycQtSh3BMiuZACv81RKxaZjTi+lmfxwTJ+pY4xScmsUuiI82OH0HHjEo6zLHVB90tr+SXloGhweQtlIzkNDfB83jXbUTN8RJXV8UKFrTNwBaW3cS9jv72/1OWcd3MqowSUk6/AVp0D7PuR+n0Zf0kSOs08wv1FDmjpDKWs85fTT9SgCFp6qwnnZq3tJQpR+ytxca1MSK99IuMu/UhB+ItpchT0HAtQBtdAPKVBsgzC4mgYXKF+UAXK9oFYkt3yo9/9zTOkfLXwQcpw+pRMuVK696pdk/1jpxm8a9jQgsWiGoDv4UTES33WtbNXYrGC0caO4MmBOg71Qb1HKnJSOlyadHZ4TDTRCO84e1hm5yD10xgHUoz1rkyfaJaaFj1JTzOwcgal7g0nXrOxPAIJ1+Jd159EB761/aedtIKljVkB3noOWxgoc6H+kczR14Wz2w2U1bmR2BM+7JGpvuGs53hHpfiuqr/FxA7xiiw8hqF6uGH8ao1p
+          MIIK1AIBAzCCCn4GCSqGSIb3DQEHAaCCCm8EggprMIIKZzCCBb4GCSqGSIb3DQEHAaCCBa8EggWr
+          MIIFpzCCBaMGCyqGSIb3DQEMCgECoIIFQDCCBTwwZgYJKoZIhvcNAQUNMFkwOAYJKoZIhvcNAQUM
+          MCsEFEOwJYJ1woK+Xz0WnbC5eoSZ6LYhAgInEAIBIDAMBggqhkiG9w0CCQUAMB0GCWCGSAFlAwQB
+          KgQQwbkC7GKguUGofARmOh0A2wSCBNDAC7RDTKW37qNwooGWI+Hee44Ljxfaq5E3lmlwkasuPyMs
+          vbseCrlgC5PwL7Tx3YKnTUd3IrQyeP5i8ybbaoR3UHJlGonbDHGoZLlZaCsZVOw0bsulOOE9lAjk
+          5rzsJ2SZkA4Ds3jdjGbZhI7M8us1LeF8AhG9RZAyPUMUUHaAbycQtSh3BMiuZACv81RKxaZjTi+l
+          mfxwTJ+pY4xScmsUuiI82OH0HHjEo6zLHVB90tr+SXloGhweQtlIzkNDfB83jXbUTN8RJXV8UKFr
+          TNwBaW3cS9jv72/1OWcd3MqowSUk6/AVp0D7PuR+n0Zf0kSOs08wv1FDmjpDKWs85fTT9SgCFp6q
+          wnnZq3tJQpR+ytxca1MSK99IuMu/UhB+ItpchT0HAtQBtdAPKVBsgzC4mgYXKF+UAXK9oFYkt3yo
+          9/9zTOkfLXwQcpw+pRMuVK696pdk/1jpxm8a9jQgsWiGoDv4UTES33WtbNXYrGC0caO4MmBOg71Q
+          b1HKnJSOlyadHZ4TDTRCO84e1hm5yD10xgHUoz1rkyfaJaaFj1
 Preview truncated for large file
