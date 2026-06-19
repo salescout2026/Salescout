@@ -6,15 +6,15 @@ on:
     branches:
       - main
       - master
-    paths:
-      - 'SaleScout_Current.zip'
-      - 'SaleScout_iPhone_WebApp_Current.zip'
-      - '.github/workflows/build-apk.yml'
 
 permissions:
   contents: read
   pages: write
   id-token: write
+
+env:
+  ANDROID_ZIP: SaleScout_Current.zip
+  IPHONE_ZIP: SaleScout_iPhone_WebApp_Current.zip
 
 concurrency:
   group: salescout-pages
@@ -32,15 +32,40 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v4
 
-      - name: Check required ZIP files
+      - name: Find app ZIP files
+        id: zips
         shell: bash
         run: |
+          set -e
           echo "Repo root files:"
           ls -la
-          test -f SaleScout_Current.zip
-          test -f SaleScout_iPhone_WebApp_Current.zip
-          unzip -t SaleScout_Current.zip
-          unzip -t SaleScout_iPhone_WebApp_Current.zip
+
+          if [ ! -f "$ANDROID_ZIP" ]; then
+            echo "SaleScout_Current.zip was not found. Looking for another SaleScout Android ZIP..."
+            FOUND_ANDROID=$(find . -maxdepth 1 -type f -name 'SaleScout*.zip' ! -name 'SaleScout_iPhone*.zip' | sed 's#^./##' | head -n 1)
+            if [ -z "$FOUND_ANDROID" ]; then
+              echo "ERROR: No Android app ZIP found in the repo root. Upload SaleScout_Current.zip to the main/root folder."
+              exit 1
+            fi
+            ANDROID_ZIP="$FOUND_ANDROID"
+          fi
+
+          if [ ! -f "$IPHONE_ZIP" ]; then
+            echo "SaleScout_iPhone_WebApp_Current.zip was not found. Looking for another iPhone web app ZIP..."
+            FOUND_IPHONE=$(find . -maxdepth 1 -type f -name 'SaleScout_iPhone*.zip' | sed 's#^./##' | head -n 1)
+            if [ -z "$FOUND_IPHONE" ]; then
+              echo "ERROR: No iPhone web app ZIP found in the repo root. Upload SaleScout_iPhone_WebApp_Current.zip to the main/root folder."
+              exit 1
+            fi
+            IPHONE_ZIP="$FOUND_IPHONE"
+          fi
+
+          echo "Using Android ZIP: $ANDROID_ZIP"
+          echo "Using iPhone ZIP: $IPHONE_ZIP"
+          unzip -t "$ANDROID_ZIP"
+          unzip -t "$IPHONE_ZIP"
+          echo "android_zip=$ANDROID_ZIP" >> "$GITHUB_OUTPUT"
+          echo "iphone_zip=$IPHONE_ZIP" >> "$GITHUB_OUTPUT"
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
@@ -55,27 +80,54 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Unzip Android project
+        id: android_project
         shell: bash
         run: |
+          set -e
           rm -rf android_project public
           mkdir android_project
-          unzip -o SaleScout_Current.zip -d android_project
-          test -f android_project/settings.gradle
-          test -f android_project/app/build.gradle
+          unzip -o "${{ steps.zips.outputs.android_zip }}" -d android_project
+
+          PROJECT_DIR=$(find android_project -name settings.gradle -printf '%h\n' | head -n 1)
+          if [ -z "$PROJECT_DIR" ]; then
+            echo "ERROR: Could not find settings.gradle inside the Android ZIP. The ZIP must contain the Android project files."
+            find android_project -maxdepth 3 -type f | sort | head -n 80
+            exit 1
+          fi
+
+          if [ ! -f "$PROJECT_DIR/app/build.gradle" ]; then
+            echo "ERROR: Found settings.gradle in $PROJECT_DIR but could not find app/build.gradle."
+            find "$PROJECT_DIR" -maxdepth 3 -type f | sort | head -n 80
+            exit 1
+          fi
+
+          echo "Android project directory: $PROJECT_DIR"
+          echo "project_dir=$PROJECT_DIR" >> "$GITHUB_OUTPUT"
 
       - name: Build Android APK
         shell: bash
         run: |
-          gradle --no-daemon -p android_project assembleDebug
-          test -f android_project/app/build/outputs/apk/debug/app-debug.apk
+          set -e
+          gradle --no-daemon -p "${{ steps.android_project.outputs.project_dir }}" assembleDebug
+          test -f "${{ steps.android_project.outputs.project_dir }}/app/build/outputs/apk/debug/app-debug.apk"
 
       - name: Prepare public hub website
         shell: bash
         run: |
+          set -e
           mkdir -p public/iphone
-          unzip -o SaleScout_iPhone_WebApp_Current.zip -d public/iphone
-          cp android_project/app/build/outputs/apk/debug/app-debug.apk public/SaleScout.apk
-          cp public/iphone/icons/apple-touch-icon.png public/salescout-icon.png || true
+          unzip -o "${{ steps.zips.outputs.iphone_zip }}" -d public/iphone_raw
+
+          IPHONE_DIR=$(find public/iphone_raw -name index.html -printf '%h\n' | head -n 1)
+          if [ -z "$IPHONE_DIR" ]; then
+            echo "ERROR: Could not find index.html inside the iPhone web app ZIP."
+            find public/iphone_raw -maxdepth 3 -type f | sort | head -n 80
+            exit 1
+          fi
+
+          cp -R "$IPHONE_DIR"/. public/iphone/
+          cp "${{ steps.android_project.outputs.project_dir }}/app/build/outputs/apk/debug/app-debug.apk" public/SaleScout.apk
+          cp public/iphone/icons/apple-touch-icon.png public/salescout-icon.png 2>/dev/null || true
 
           cat > public/index.html <<'HTML'
           <!doctype html>
@@ -91,7 +143,7 @@ jobs:
               body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:linear-gradient(180deg,#eaf5ec,var(--bg)); color:var(--text); }
               .wrap { max-width:760px; margin:0 auto; padding:28px 16px 40px; }
               .hero { text-align:center; padding:18px 8px 8px; }
-              .icon { width:92px; height:92px; border-radius:22px; box-shadow:0 10px 24px rgba(0,0,0,.14); }
+              .icon { width:92px; height:92px; border-radius:22px; box-shadow:0 10px 24px rgba(0,0,0,.14); background:#0f7a3b; }
               h1 { margin:14px 0 6px; font-size:2rem; line-height:1.1; }
               .sub { margin:0 auto; color:var(--muted); font-size:1.05rem; max-width:570px; }
               .grid { display:grid; grid-template-columns:1fr; gap:14px; margin-top:22px; }
