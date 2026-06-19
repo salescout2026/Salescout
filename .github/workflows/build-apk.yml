@@ -1,4 +1,4 @@
-name: Build SaleScout APK from ZIP
+name: Build SaleScout Current APK
 
 on:
   workflow_dispatch:
@@ -9,20 +9,32 @@ on:
 
 jobs:
   build:
-    name: Build SaleScout APK
+    name: Build SaleScout Current APK
     runs-on: ubuntu-latest
 
     steps:
       - name: Check out repo
         uses: actions/checkout@v4
 
-      - name: Unzip SaleScout project
+      - name: Clean workspace and unzip current app
         shell: bash
         run: |
-          rm -rf app build.gradle settings.gradle salescout-debug.keystore
-          test -f SaleScout_Project_V12_Stacked_OCR_Icon.zip
-          unzip -o SaleScout_Project_V12_Stacked_OCR_Icon.zip
+          echo "Files in repo root:"
           ls -la
+
+          echo "Checking for SaleScout_Current.zip..."
+          test -f SaleScout_Current.zip
+
+          echo "Removing old extracted app files so this build cannot reuse leftovers..."
+          rm -rf app build.gradle settings.gradle gradle gradlew gradlew.bat salescout-debug.keystore
+
+          echo "Testing ZIP..."
+          unzip -t SaleScout_Current.zip
+
+          echo "Unzipping current SaleScout app..."
+          unzip -o SaleScout_Current.zip
+
+          echo "Checking Android project files..."
           test -f settings.gradle
           test -f app/build.gradle
 
@@ -44,5 +56,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: SaleScout-v12-stacked-ocr-icon-apk
+          name: SaleScout-current-apk
           path: app/build/outputs/apk/debug/app-debug.apk
