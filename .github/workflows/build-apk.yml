@@ -16,14 +16,14 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v4
 
-      - name: Create family manual Android app
+      - name: Create SaleScout family manual Android app v2
         shell: bash
         run: |
           mkdir -p app/src/main/java/com/salescout/app
           mkdir -p app/src/main/res/values
           mkdir -p app/src/main/assets
 
-          cat > settings.gradle <<'EOF'
+          cat > settings.gradle <<'EOF_SETTINGS'
           pluginManagement {
               repositories {
                   google()
@@ -40,15 +40,20 @@ jobs:
           }
           rootProject.name = 'SaleScoutFamilyManual'
           include ':app'
-          EOF
+          EOF_SETTINGS
 
-          cat > build.gradle <<'EOF'
+          cat > build.gradle <<'EOF_ROOT_GRADLE'
           plugins {
               id 'com.android.application' version '8.6.1' apply false
           }
-          EOF
+          EOF_ROOT_GRADLE
 
-          cat > app/build.gradle <<'EOF'
+          cat > salescout-debug.keystore.b64 <<'EOF_KEYSTORE'
+          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
+          EOF_KEYSTORE
+          base64 -d salescout-debug.keystore.b64 > salescout-debug.keystore
+
+          cat > app/build.gradle <<'EOF_APP_GRADLE'
           plugins {
               id 'com.android.application'
           }
@@ -60,27 +65,36 @@ jobs:
               defaultConfig {
                   applicationId 'com.salescout.family'
                   minSdk 23
-                  targetSdk 34
-                  versionCode 10
-                  versionName '1.0-family-manual'
+                  targetSdk 35
+                  versionCode 20
+                  versionName '2.0-family-manual-fixed'
+              }
+
+              signingConfigs {
+                  debug {
+                      storeFile file('../salescout-debug.keystore')
+                      storePassword 'salescout'
+                      keyAlias 'salescoutdebug'
+                      keyPassword 'salescout'
+                  }
               }
           }
-          EOF
+          EOF_APP_GRADLE
 
-          cat > app/src/main/res/values/strings.xml <<'EOF'
+          cat > app/src/main/res/values/strings.xml <<'EOF_STRINGS'
           <resources>
               <string name="app_name">SaleScout</string>
           </resources>
-          EOF
+          EOF_STRINGS
 
-          cat > app/src/main/res/values/colors.xml <<'EOF'
+          cat > app/src/main/res/values/colors.xml <<'EOF_COLORS'
           <resources>
               <color name="salescout_green">#2D804E</color>
               <color name="salescout_light">#F6FAF6</color>
           </resources>
-          EOF
+          EOF_COLORS
 
-          cat > app/src/main/res/values/themes.xml <<'EOF'
+          cat > app/src/main/res/values/themes.xml <<'EOF_THEMES'
           <resources>
               <style name="AppTheme" parent="android:style/Theme.Material.Light.NoActionBar">
                   <item name="android:windowNoTitle">true</item>
@@ -92,9 +106,9 @@ jobs:
                   <item name="android:windowLightNavigationBar">true</item>
               </style>
           </resources>
-          EOF
+          EOF_THEMES
 
-          cat > app/src/main/AndroidManifest.xml <<'EOF'
+          cat > app/src/main/AndroidManifest.xml <<'EOF_MANIFEST'
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <queries>
                   <package android:name="com.google.android.apps.maps" />
@@ -124,11 +138,11 @@ jobs:
                   </activity>
               </application>
           </manifest>
-          EOF
+          EOF_MANIFEST
 
-          cat > app/src/main/java/com/salescout/app/MainActivity.java <<'EOF'
+          cat > app/src/main/java/com/salescout/app/MainActivity.java <<'EOF_JAVA'
           package com.salescout.app;
-          
+
           import android.app.Activity;
           import android.content.ActivityNotFoundException;
           import android.content.Intent;
@@ -145,11 +159,11 @@ jobs:
           import android.webkit.WebViewClient;
           import android.widget.FrameLayout;
           import android.widget.Toast;
-          
+
           public class MainActivity extends Activity {
               private static final String GOOGLE_MAPS_PACKAGE = "com.google.android.apps.maps";
               private WebView webView;
-          
+
               @Override
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
@@ -159,16 +173,24 @@ jobs:
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                       window.setDecorFitsSystemWindows(true);
                   }
+
                   FrameLayout root = new FrameLayout(this);
                   root.setFitsSystemWindows(true);
                   webView = new WebView(this);
-                  root.addView(webView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                  root.addView(webView, new FrameLayout.LayoutParams(
+                          ViewGroup.LayoutParams.MATCH_PARENT,
+                          ViewGroup.LayoutParams.MATCH_PARENT
+                  ));
                   setContentView(root);
+
                   configureWebView();
-                  if (savedInstanceState == null) webView.loadUrl("file:///android_asset/index.html");
-                  else webView.restoreState(savedInstanceState);
+                  if (savedInstanceState == null) {
+                      webView.loadUrl("file:///android_asset/index.html");
+                  } else {
+                      webView.restoreState(savedInstanceState);
+                  }
               }
-          
+
               private void configureWebView() {
                   WebSettings settings = webView.getSettings();
                   settings.setJavaScriptEnabled(true);
@@ -179,76 +201,92 @@ jobs:
                   settings.setSupportMultipleWindows(true);
                   settings.setJavaScriptCanOpenWindowsAutomatically(true);
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                      settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+                      settings.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
                   }
+
                   webView.addJavascriptInterface(new MapsBridge(), "SaleScoutAndroid");
                   webView.setWebViewClient(new WebViewClient() {
                       @Override
                       public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                           return handleUrl(request.getUrl().toString());
                       }
+
                       @Override
                       public boolean shouldOverrideUrlLoading(WebView view, String url) {
                           return handleUrl(url);
                       }
                   });
               }
-          
+
               private boolean handleUrl(String url) {
                   if (url == null) return false;
                   if (url.startsWith("file:///android_asset/")) return false;
-                  if (url.contains("google.com/maps") || url.contains("maps.google.com") || url.contains("maps.app.goo.gl") || url.startsWith("geo:") || url.startsWith("google.navigation:")) {
+                  if (isMapUrl(url)) {
                       openMaps(url);
                       return true;
                   }
-                  if (url.startsWith("http://") || url.startsWith("https://")) {
-                      try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))); } catch (Exception ignored) {}
+                  if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("geo:")) {
+                      try {
+                          startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+                      } catch (Exception ignored) { }
                       return true;
                   }
                   return false;
               }
-          
+
+              private boolean isMapUrl(String url) {
+                  return url.contains("google.com/maps")
+                          || url.contains("maps.google.com")
+                          || url.contains("maps.app.goo.gl")
+                          || url.startsWith("geo:")
+                          || url.startsWith("google.navigation:");
+              }
+
               public class MapsBridge {
                   @JavascriptInterface
                   public void openMaps(final String url) {
                       runOnUiThread(() -> MainActivity.this.openMaps(url));
                   }
               }
-          
+
               private void openMaps(String url) {
                   try {
                       Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                       intent.setPackage(GOOGLE_MAPS_PACKAGE);
                       startActivity(intent);
                   } catch (ActivityNotFoundException first) {
-                      try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))); }
-                      catch (Exception second) { Toast.makeText(this, "No app found to open maps.", Toast.LENGTH_SHORT).show(); }
+                      try {
+                          startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+                      } catch (Exception second) {
+                          Toast.makeText(this, "No app found to open maps.", Toast.LENGTH_SHORT).show();
+                      }
                   } catch (Exception e) {
                       Toast.makeText(this, "Could not open maps.", Toast.LENGTH_SHORT).show();
                   }
               }
-          
+
               @Override
               public void onBackPressed() {
                   if (webView != null && webView.canGoBack()) webView.goBack();
                   else super.onBackPressed();
               }
-          
+
               @Override
               protected void onSaveInstanceState(Bundle outState) {
                   super.onSaveInstanceState(outState);
-                  webView.saveState(outState);
+                  if (webView != null) webView.saveState(outState);
               }
-          
+
               @Override
               protected void onDestroy() {
                   if (webView != null) webView.destroy();
                   super.onDestroy();
               }
           }
-          EOF
 
-          cat > app/src/main/assets/index.html <<'EOF'
+          EOF_JAVA
+
+          cat > app/src/main/assets/index.html <<'EOF_HTML'
           <!doctype html>
           <html lang="en">
           <head>
@@ -257,39 +295,34 @@ jobs:
             <title>SaleScout</title>
             <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
             <style>
-              :root {
-                --green:#2d804e;
-                --green2:#1f6b3e;
-                --bg:#f6faf6;
-                --card:#ffffff;
-                --text:#142018;
-                --muted:#647067;
-                --line:#dfe8e0;
-                --danger:#b3261e;
-                --shadow:0 10px 24px rgba(0,0,0,.08);
-                --bottom:88px;
+              :root{
+                --green:#2d804e; --green-dark:#1f6b3e; --bg:#f6faf6; --card:#fff; --text:#142018;
+                --muted:#647067; --line:#dfe8e0; --danger:#b3261e; --shadow:0 10px 24px rgba(0,0,0,.08);
+                --bottom:92px;
               }
-              *{box-sizing:border-box}
-              html,body{margin:0;height:100%;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+              *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+              html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden}
               body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
-              header{position:sticky;top:0;z-index:5;background:var(--green);color:white;padding:12px 14px 14px;box-shadow:var(--shadow)}
-              .brand{display:flex;gap:12px;align-items:center}
-              .logo{width:52px;height:52px;border-radius:13px;background:white;color:var(--green);display:grid;place-items:center;font-weight:900;font-size:20px;box-shadow:0 4px 12px rgba(0,0,0,.15);flex:0 0 auto}
-              h1{font-size:29px;line-height:1;margin:0;font-weight:900;letter-spacing:-1px}.tag{font-size:16px;opacity:.94;margin-top:4px}
+              header{position:sticky;top:0;z-index:50;background:var(--green);color:#fff;padding:12px 14px 14px;box-shadow:var(--shadow)}
+              .brand{display:flex;gap:12px;align-items:center}.logo{width:56px;height:56px;border-radius:15px;background:#fff;color:var(--green);display:grid;place-items:center;font-weight:900;font-size:20px;box-shadow:0 4px 12px rgba(0,0,0,.15);flex:0 0 auto}
+              h1{font-size:30px;line-height:1;margin:0;font-weight:900;letter-spacing:-1px}.tag{font-size:16px;opacity:.94;margin-top:5px}
               main{padding:14px 12px calc(var(--bottom) + 20px);max-width:760px;margin:0 auto}
-              .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
+              .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
               .row{display:flex;gap:10px;align-items:center}.row>*{min-width:0}.grow{flex:1}
-              label{display:block;font-weight:800;margin:7px 0 6px;font-size:14px;color:#445048}
-              input,textarea,select{width:100%;border:1px solid #ccd8ce;border-radius:12px;background:#fff;padding:12px;font-size:16px;color:var(--text);outline:none} textarea{min-height:74px;resize:vertical}
-              button{border:0;border-radius:13px;background:var(--green);color:white;padding:12px 14px;font-weight:900;font-size:16px;box-shadow:0 3px 10px rgba(45,128,78,.22)}
-              button.secondary{background:#e8f1e9;color:#173820;box-shadow:none;border:1px solid #cfe0d2} button.danger{background:#fff;color:var(--danger);border:1px solid #efc6c1;box-shadow:none} button.small{font-size:13px;padding:8px 10px;border-radius:10px}.pill{border-radius:999px}
-              .tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;gap:10px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:rgba(45,128,78,.96);backdrop-filter:blur(8px);box-shadow:0 -8px 20px rgba(0,0,0,.12)}
+              label{display:block;font-weight:850;margin:8px 0 6px;font-size:14px;color:#445048}
+              input,textarea,select{width:100%;border:1px solid #ccd8ce;border-radius:13px;background:#fff;padding:13px;font-size:16px;color:var(--text);outline:none} textarea{min-height:86px;resize:vertical}
+              input:focus,textarea:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(45,128,78,.14)}
+              button{border:0;border-radius:14px;background:var(--green);color:white;padding:12px 14px;font-weight:900;font-size:16px;box-shadow:0 3px 10px rgba(45,128,78,.22)}
+              button:active{transform:translateY(1px)} button.secondary{background:#e8f1e9;color:#173820;box-shadow:none;border:1px solid #cfe0d2} button.danger{background:#fff;color:var(--danger);border:1px solid #efc6c1;box-shadow:none} button.small{font-size:13px;padding:8px 10px;border-radius:11px}.wide{width:100%}
+              .tabs{position:fixed;left:0;right:0;bottom:0;z-index:100;display:flex;gap:10px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:rgba(45,128,78,.97);backdrop-filter:blur(8px);box-shadow:0 -8px 20px rgba(0,0,0,.12)}
               .tabs button{flex:1;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);box-shadow:none}.tabs button.active{background:#fff;color:var(--green)}
               .screen{display:none}.screen.active{display:block}.hint{color:var(--muted);font-size:14px;line-height:1.35}.empty{padding:26px 10px;text-align:center;color:var(--muted)}
-              #map{height:390px;border-radius:16px;border:1px solid var(--line);overflow:hidden;background:#dfe9db}.mapNote{font-size:12px;color:var(--muted);margin-top:7px}
-              .sale{border:1px solid var(--line);border-radius:15px;padding:12px;margin:10px 0;background:white}.saleHead{display:flex;gap:10px;justify-content:space-between}.saleTitle{font-size:18px;font-weight:900}.addr{color:#23527a;font-weight:700;margin-top:3px}.meta{font-size:13px;color:var(--muted);margin-top:4px}.notes{white-space:pre-wrap;margin-top:8px;font-size:14px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.badge{display:inline-block;font-size:12px;font-weight:900;padding:4px 8px;border-radius:999px;background:#eaf3eb;color:#1c673b;margin-left:4px}.visited .saleTitle,.visited .addr,.visited .notes{opacity:.55;text-decoration:line-through}.checkline{display:flex;align-items:center;gap:9px;margin-top:9px;font-size:14px}.checkline input{width:auto}
-              .topTools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}.stats{font-size:14px;color:var(--muted);font-weight:700}.routeBox{background:#eef7ef;border:1px solid #d2e7d5;border-radius:14px;padding:12px;margin:10px 0}.routeStop{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #d8eadb}.routeStop:last-child{border-bottom:0}.routeStop b{font-size:14px}.routeStop small{display:block;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:230px}
-              .modal{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.45);display:none;align-items:flex-end}.modal.show{display:flex}.sheet{background:#fff;width:100%;max-width:760px;margin:0 auto;border-radius:24px 24px 0 0;padding:16px 14px calc(20px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto}.sheet h2{margin:0 0 8px}.split{display:grid;grid-template-columns:1fr 1fr;gap:10px}.sr{position:absolute;left:-10000px}
+              #map{height:min(390px,52vh);border-radius:16px;border:1px solid var(--line);overflow:hidden;background:#dfe9db;position:relative;z-index:1}.mapNote{font-size:12px;color:var(--muted);margin-top:7px}
+              .leaflet-pane,.leaflet-top,.leaflet-bottom{z-index:1!important}.leaflet-control{z-index:2!important}.leaflet-container{font-family:inherit}
+              body.modal-open #map{pointer-events:none}
+              .sale{border:1px solid var(--line);border-radius:15px;padding:12px;margin:10px 0;background:white}.saleHead{display:flex;gap:10px;justify-content:space-between}.saleTitle{font-size:18px;font-weight:900}.addr{color:#23527a;font-weight:750;margin-top:3px}.meta{font-size:13px;color:var(--muted);margin-top:4px}.notes{white-space:pre-wrap;margin-top:8px;font-size:14px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.badge{display:inline-block;font-size:12px;font-weight:900;padding:4px 8px;border-radius:999px;background:#eaf3eb;color:#1c673b;margin-left:4px}.visited .saleTitle,.visited .addr,.visited .notes{opacity:.55;text-decoration:line-through}.checkline{display:flex;align-items:center;gap:9px;margin-top:11px;font-size:15px}.checkline input{width:20px;height:20px}
+              .topTools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}.stats{font-size:14px;color:var(--muted);font-weight:750}.routeBox{background:#eef7ef;border:1px solid #d2e7d5;border-radius:14px;padding:12px;margin:10px 0}.routeStop{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #d8eadb}.routeStop:last-child{border-bottom:0}.routeStop b{font-size:14px}.routeStop small{display:block;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:230px}.warn{background:#fff7e6;border:1px solid #f0d69b;color:#664500;border-radius:12px;padding:10px;margin-top:10px;font-size:14px}
+              .modal{position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,.54);display:none;align-items:flex-end}.modal.show{display:flex}.sheet{position:relative;z-index:20001;background:#fff;width:100%;max-width:760px;margin:0 auto;border-radius:24px 24px 0 0;padding:16px 14px calc(20px + env(safe-area-inset-bottom));max-height:calc(100dvh - 18px);overflow:auto;box-shadow:0 -8px 30px rgba(0,0,0,.22)}.sheet h2{margin:0 0 8px}.split{display:grid;grid-template-columns:1fr 1fr;gap:10px}.formActions{position:sticky;bottom:0;background:linear-gradient(rgba(255,255,255,.85),#fff 30%);padding-top:10px;margin-top:8px}.smallText{font-size:12px;color:var(--muted);margin-top:4px}.linkbox{word-break:break-word;background:#f4f8f4;border:1px solid var(--line);padding:10px;border-radius:12px;margin-top:10px;display:none}
               @media(min-width:700px){.modal{align-items:center}.sheet{border-radius:24px;max-width:620px}.tabs{left:50%;transform:translateX(-50%);max-width:760px;border-radius:22px 22px 0 0}.routeStop small{max-width:480px}}
             </style>
           </head>
@@ -298,13 +331,13 @@ jobs:
             <main>
               <section id="mapScreen" class="screen active">
                 <div class="card">
-                  <div class="row"><div class="grow"><label>Home city / start area</label><input id="homeInput" value="Gladwin, MI" /></div><button id="centerBtn" title="Center map">Map</button></div>
+                  <div class="row"><div class="grow"><label>Start from</label><input id="homeInput" value="Gladwin, MI" autocomplete="street-address" /></div><button id="centerBtn" title="Center map">Map</button></div>
                   <div class="hint" id="centerStatus">Manual family mode — no login, no scraping.</div>
                 </div>
-                <div class="card"><div id="map"></div><div class="mapNote">Map uses OpenStreetMap. If a pin fails, the sale still works for Google Maps routing by address.</div></div>
-                <div class="card"><div class="row"><div class="grow"><h2 style="margin:0">Add a sale</h2><div class="hint">Type the address, date/time, and notes. Delete anything you decide not to visit.</div></div><button id="openAddBtn">Add</button></div></div>
+                <div class="card"><div id="map"></div><div class="mapNote">Pins use OpenStreetMap. Google Maps routing still works by address even if a pin does not appear.</div></div>
+                <div class="card"><div class="row"><div class="grow"><h2 style="margin:0">Add a sale</h2><div class="hint">Save the sales you want for today or this week, then send the route to Google Maps.</div></div><button id="openAddBtn">Add</button></div></div>
               </section>
-          
+
               <section id="listScreen" class="screen">
                 <div class="card">
                   <div class="topTools"><button class="secondary small" data-filter="all">All</button><button class="secondary small" data-filter="today">Today</button><button class="secondary small" data-filter="week">This week</button><button class="secondary small" id="clearVisitedBtn">Clear visited</button></div>
@@ -312,117 +345,161 @@ jobs:
                 </div>
                 <div id="salesList"></div>
               </section>
-          
+
               <section id="routeScreen" class="screen">
-                <div class="card"><h2 style="margin-top:0">Route</h2><div class="hint">Included sales that are not marked visited will be sent to Google Maps. Put them in the order you want.</div><div class="routeBox" id="routeStops"></div><button id="openRouteBtn">Open route in Google Maps</button><button class="secondary" id="copyRouteBtn" style="margin-left:8px;margin-top:8px">Show route link</button><div id="routeLinkBox" class="hint" style="word-break:break-word;margin-top:10px"></div></div>
-                <div class="card"><h3 style="margin-top:0">Backup / share</h3><div class="hint">Use this if you want to copy the day’s list to another phone. It is not automatic sync.</div><div class="actions"><button class="secondary" id="exportBtn">Show backup text</button><button class="secondary" id="importBtn">Import backup text</button></div><textarea id="backupText" placeholder="Backup text appears here, or paste backup text here to import." style="margin-top:10px"></textarea></div>
+                <div class="card"><h2 style="margin-top:0">Route</h2><div class="hint">Included sales that are not marked visited will be sent to Google Maps. Use ↑/↓ to change the order.</div><div class="routeBox" id="routeStops"></div><div id="routeWarn" class="warn" style="display:none"></div><button id="openRouteBtn" class="wide">Open route in Google Maps</button><button class="secondary wide" id="copyRouteBtn" style="margin-top:8px">Show route link</button><div id="routeLinkBox" class="linkbox"></div></div>
+                <div class="card"><h3 style="margin-top:0">Backup / share</h3><div class="hint">Copy the day’s list to another phone. This is manual, not automatic sync.</div><div class="actions"><button class="secondary" id="exportBtn">Show backup text</button><button class="secondary" id="importBtn">Import backup text</button></div><textarea id="backupText" placeholder="Backup text appears here, or paste backup text here to import." style="margin-top:10px"></textarea></div>
               </section>
             </main>
-          
+
             <nav class="tabs"><button class="active" data-screen="mapScreen">Map</button><button data-screen="listScreen">List</button><button data-screen="routeScreen">Route</button></nav>
-          
-            <div id="saleModal" class="modal"><div class="sheet"><h2 id="modalTitle">Add sale</h2><input type="hidden" id="saleId"><label>Sale name</label><input id="saleTitle" placeholder="Example: Church rummage sale"><label>Address</label><input id="saleAddress" placeholder="123 Main St, Gladwin, MI"><div class="split"><div><label>Date</label><input id="saleDate" type="date"></div><div><label>Start time</label><input id="saleTime" type="time"></div></div><label>Notes / what to look for</label><textarea id="saleNotes" placeholder="Tools, kids clothes, reef tank stuff, furniture..."></textarea><div class="checkline"><input id="saleInclude" type="checkbox" checked><span>Include in route</span></div><div class="actions"><button id="saveSaleBtn">Save sale</button><button class="secondary" id="cancelSaleBtn">Cancel</button><button class="danger" id="deleteSaleBtn" style="display:none">Delete</button></div></div></div>
-          
+
+            <div id="saleModal" class="modal" aria-hidden="true"><div class="sheet"><h2 id="modalTitle">Add sale</h2><input type="hidden" id="saleId"><label>Sale name</label><input id="saleTitle" placeholder="Example: Church rummage sale"><label>Address</label><input id="saleAddress" placeholder="123 Main St, Gladwin, MI" autocomplete="street-address"><div class="smallText">The address is what Google Maps uses for routing.</div><div class="split"><div><label>Date</label><input id="saleDate" type="date"></div><div><label>Start time</label><input id="saleTime" type="time"></div></div><label>Notes / what to look for</label><textarea id="saleNotes" placeholder="Tools, kids clothes, reef tank stuff, furniture..."></textarea><div class="checkline"><input id="saleInclude" type="checkbox" checked><span>Include in route</span></div><div class="actions formActions"><button id="saveSaleBtn">Save sale</button><button class="secondary" id="cancelSaleBtn">Cancel</button><button class="danger" id="deleteSaleBtn" style="display:none">Delete</button></div></div></div>
+
             <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
             <script>
-            const STORAGE_KEY = 'salescout_family_manual_v1';
+            const STORAGE_KEY = 'salescout_family_manual_v2';
+            const LEGACY_KEYS = ['salescout_family_manual_v1'];
             let sales = [];
             let filter = 'all';
-            let map, markersLayer;
+            let map, markersLayer, mapRenderTimer = null;
             const $ = id => document.getElementById(id);
-            const todayISO = () => new Date().toISOString().slice(0,10);
+            function todayISO(){ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); }
             function uid(){ return 's_' + Math.random().toString(36).slice(2) + Date.now().toString(36); }
-            function load(){ try{ sales = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }catch(e){ sales=[]; } }
-            function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(sales)); renderAll(); }
-            function sortSales(list=sales){ return [...list].sort((a,b)=>((a.date||'9999')+(a.time||'')).localeCompare((b.date||'9999')+(b.time||''))); }
+            function normalizeSale(s, i){ return { id:s.id||uid(), title:s.title||'Yard sale', address:s.address||'', date:s.date||'', time:s.time||'', notes:s.notes||'', include:s.include!==false, visited:!!s.visited, order:Number.isFinite(Number(s.order))?Number(s.order):i, lat:s.lat||null, lon:s.lon||null, geocodedAddress:s.geocodedAddress||'' }; }
+            function load(){
+              try{ sales = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); }catch(e){ sales=null; }
+              if(!Array.isArray(sales)){
+                for(const key of LEGACY_KEYS){ try{ const old=JSON.parse(localStorage.getItem(key)||'null'); if(Array.isArray(old)){ sales=old; break; } }catch(e){} }
+              }
+              if(!Array.isArray(sales)) sales=[];
+              sales=sales.map(normalizeSale);
+              saveOnly();
+            }
+            function saveOnly(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(sales)); }
+            function save(){ saveOnly(); renderAll(); }
+            function sortSales(list=sales){ return [...list].sort((a,b)=>((a.date||'9999-99-99')+' '+(a.time||'99:99')+' '+String(a.order)).localeCompare((b.date||'9999-99-99')+' '+(b.time||'99:99')+' '+String(b.order))); }
+            function routeSales(){ return [...sales].filter(s=>s.include!==false && !s.visited && s.address.trim()).sort((a,b)=>Number(a.order)-Number(b.order)); }
             function inThisWeek(dateStr){ if(!dateStr) return false; const d=new Date(dateStr+'T12:00:00'); const now=new Date(); const day=now.getDay(); const start=new Date(now); start.setDate(now.getDate()-day); start.setHours(0,0,0,0); const end=new Date(start); end.setDate(start.getDate()+7); return d>=start && d<end; }
-            function filtered(){ let list = sortSales(); if(filter==='today') list=list.filter(s=>s.date===todayISO()); if(filter==='week') list=list.filter(s=>inThisWeek(s.date)); return list; }
-            function routeSales(){ return sortSales(sales).filter(s=>s.include!==false && !s.visited && s.address && s.address.trim()); }
-            function escapeHtml(str=''){ return String(str).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+            function filtered(){ let list=sortSales(); if(filter==='today') list=list.filter(s=>s.date===todayISO()); if(filter==='week') list=list.filter(s=>inThisWeek(s.date)); return list; }
+            function escapeHtml(str){ return String(str||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
             function dateLabel(s){ let parts=[]; if(s.date) parts.push(s.date); if(s.time) parts.push(s.time); return parts.join(' at ') || 'No time set'; }
-          
+
             function initMap(){
               try{
-                map = L.map('map', { zoomControl:true }).setView([44.0295,-84.4864], 9);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'&copy; OpenStreetMap' }).addTo(map);
+                if(!window.L) throw new Error('Leaflet missing');
+                map = L.map('map',{ zoomControl:true }).setView([44.0295,-84.4864],9);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19, attribution:'&copy; OpenStreetMap'}).addTo(map);
                 markersLayer = L.layerGroup().addTo(map);
-                renderMap();
-              }catch(e){ $('map').innerHTML='<div class="empty">Map could not load, but list and Google Maps routing still work.</div>'; }
+                setTimeout(()=>map.invalidateSize(),250);
+                scheduleMapRender();
+              }catch(e){ $('map').innerHTML='<div class="empty">Map could not load, but the list and Google Maps routing still work.</div>'; }
             }
             async function geocodeSale(s){
-              if(s.lat && s.lon) return s;
-              if(!s.address) return s;
+              if(!s.address.trim()) return s;
+              if(s.lat && s.lon && s.geocodedAddress===s.address) return s;
               try{
-                const res = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(s.address));
-                const data = await res.json();
-                if(data && data[0]){ s.lat=parseFloat(data[0].lat); s.lon=parseFloat(data[0].lon); }
+                const res=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(s.address));
+                const data=await res.json();
+                if(data && data[0]){ s.lat=parseFloat(data[0].lat); s.lon=parseFloat(data[0].lon); s.geocodedAddress=s.address; saveOnly(); }
               }catch(e){}
               return s;
             }
             async function geocodeHome(){
-              const q = $('homeInput').value || 'Gladwin, MI';
-              $('centerStatus').textContent = 'Finding ' + q + '...';
+              const q=$('homeInput').value.trim() || 'Gladwin, MI';
+              $('centerStatus').textContent='Finding '+q+'...';
               try{
-                const res = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(q));
-                const data = await res.json();
-                if(data && data[0] && map){ map.setView([parseFloat(data[0].lat), parseFloat(data[0].lon)], 10); $('centerStatus').textContent='Centered on ' + q; localStorage.setItem('salescout_home', q); }
+                const res=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(q));
+                const data=await res.json();
+                if(data && data[0] && map){ map.setView([parseFloat(data[0].lat),parseFloat(data[0].lon)],10); $('centerStatus').textContent='Centered on '+q; localStorage.setItem('salescout_home',q); }
                 else $('centerStatus').textContent='Could not find that place.';
               }catch(e){ $('centerStatus').textContent='Could not use map search right now.'; }
             }
+            function scheduleMapRender(){ clearTimeout(mapRenderTimer); mapRenderTimer=setTimeout(renderMap,120); }
             async function renderMap(){
               if(!map || !markersLayer) return;
               markersLayer.clearLayers();
               const bounds=[];
               for(const s of sales){
                 await geocodeSale(s);
-                if(s.lat && s.lon){ const m=L.marker([s.lat,s.lon]).bindPopup('<b>'+escapeHtml(s.title||'Sale')+'</b><br>'+escapeHtml(s.address||'')+'<br>'+escapeHtml(dateLabel(s))); markersLayer.addLayer(m); bounds.push([s.lat,s.lon]); }
+                if(s.lat && s.lon){ const marker=L.marker([s.lat,s.lon]).bindPopup('<b>'+escapeHtml(s.title||'Sale')+'</b><br>'+escapeHtml(s.address)+'<br>'+escapeHtml(dateLabel(s))); markersLayer.addLayer(marker); bounds.push([s.lat,s.lon]); }
               }
-              localStorage.setItem(STORAGE_KEY, JSON.stringify(sales));
-              if(bounds.length) map.fitBounds(bounds, {padding:[32,32], maxZoom:12});
+              if(bounds.length) map.fitBounds(bounds,{padding:[32,32],maxZoom:13});
+              else { const home=localStorage.getItem('salescout_home')||$('homeInput').value||'Gladwin, MI'; if(home.toLowerCase().includes('gladwin')) map.setView([44.0295,-84.4864],9); }
+              setTimeout(()=>map.invalidateSize(),50);
             }
-          
+
             function renderList(){
-              const list = filtered();
-              $('stats').textContent = sales.length + ' saved sale' + (sales.length===1?'':'s') + ' • ' + routeSales().length + ' in route';
+              const list=filtered();
+              $('stats').textContent=sales.length+' saved sale'+(sales.length===1?'':'s')+' • '+routeSales().length+' in route';
               const box=$('salesList');
               if(!list.length){ box.innerHTML='<div class="card empty">No sales yet. Tap Add on the map screen.</div>'; return; }
-              box.innerHTML=list.map(s=>`<div class="sale ${s.visited?'visited':''}"><div class="saleHead"><div><div class="saleTitle">${escapeHtml(s.title||'Untitled sale')} ${s.include===false?'<span class="badge">Not routed</span>':''}</div><div class="addr">${escapeHtml(s.address||'No address')}</div><div class="meta">${escapeHtml(dateLabel(s))}</div></div></div>${s.notes?`<div class="notes">${escapeHtml(s.notes)}</div>`:''}<div class="actions"><button class="small secondary" onclick="editSale('${s.id}')">Edit</button><button class="small secondary" onclick="toggleVisited('${s.id}')">${s.visited?'Unvisit':'Visited'}</button><button class="small secondary" onclick="toggleInclude('${s.id}')">${s.include===false?'Add to route':'Remove from route'}</button><button class="small danger" onclick="removeSale('${s.id}')">Delete</button></div></div>`).join('');
+              box.innerHTML=list.map(s=>`<div class="sale ${s.visited?'visited':''}"><div class="saleHead"><div><div class="saleTitle">${escapeHtml(s.title||'Untitled sale')} ${s.include===false?'<span class="badge">Not routed</span>':''}</div><div class="addr">${escapeHtml(s.address||'No address')}</div><div class="meta">${escapeHtml(dateLabel(s))}</div></div></div>${s.notes?`<div class="notes">${escapeHtml(s.notes)}</div>`:''}<div class="actions"><button class="small secondary" onclick="editSale('${s.id}')">Edit</button><button class="small secondary" onclick="openOneMap('${s.id}')">Map</button><button class="small secondary" onclick="toggleVisited('${s.id}')">${s.visited?'Unvisit':'Visited'}</button><button class="small secondary" onclick="toggleInclude('${s.id}')">${s.include===false?'Add to route':'Remove from route'}</button><button class="small danger" onclick="removeSale('${s.id}')">Delete</button></div></div>`).join('');
             }
             function renderRoute(){
-              const rs=routeSales(); const box=$('routeStops');
+              const rs=routeSales(); const box=$('routeStops'); const warn=$('routeWarn'); warn.style.display='none'; warn.textContent='';
               if(!rs.length){ box.innerHTML='<div class="empty">No route stops yet. Add sales and leave them included.</div>'; return; }
+              if(rs.length>10){ warn.style.display='block'; warn.textContent='Google Maps can be picky with large routes, so the Open route button will send the first 10 stops. Split the rest into another route.'; }
               box.innerHTML=rs.map((s,i)=>`<div class="routeStop"><div><b>${i+1}. ${escapeHtml(s.title||'Sale')}</b><small>${escapeHtml(s.address||'')}</small></div><div><button class="small secondary" onclick="moveRoute('${s.id}',-1)">↑</button><button class="small secondary" onclick="moveRoute('${s.id}',1)">↓</button></div></div>`).join('');
             }
-            function renderAll(){ renderList(); renderRoute(); renderMap(); }
-          
+            function renderAll(){ renderList(); renderRoute(); scheduleMapRender(); }
+
             function openModal(s=null){
-              $('saleModal').classList.add('show'); $('modalTitle').textContent=s?'Edit sale':'Add sale'; $('saleId').value=s?.id||''; $('saleTitle').value=s?.title||''; $('saleAddress').value=s?.address||''; $('saleDate').value=s?.date||todayISO(); $('saleTime').value=s?.time||''; $('saleNotes').value=s?.notes||''; $('saleInclude').checked=s?.include!==false; $('deleteSaleBtn').style.display=s?'inline-block':'none'; setTimeout(()=>$('saleTitle').focus(),100);
+              document.body.classList.add('modal-open');
+              $('saleModal').classList.add('show'); $('saleModal').setAttribute('aria-hidden','false');
+              $('modalTitle').textContent=s?'Edit sale':'Add sale'; $('saleId').value=s?.id||''; $('saleTitle').value=s?.title||''; $('saleAddress').value=s?.address||''; $('saleDate').value=s?.date||todayISO(); $('saleTime').value=s?.time||''; $('saleNotes').value=s?.notes||''; $('saleInclude').checked=s?.include!==false; $('deleteSaleBtn').style.display=s?'inline-block':'none';
+              setTimeout(()=>$('saleTitle').focus(),150);
             }
-            function closeModal(){ $('saleModal').classList.remove('show'); }
+            function closeModal(){ document.body.classList.remove('modal-open'); $('saleModal').classList.remove('show'); $('saleModal').setAttribute('aria-hidden','true'); }
             function editSale(id){ const s=sales.find(x=>x.id===id); if(s) openModal(s); }
+            function nextOrder(){ return sales.reduce((max,s)=>Math.max(max,Number(s.order)||0),0)+1; }
             function removeSale(id){ if(confirm('Delete this sale?')){ sales=sales.filter(s=>s.id!==id); save(); closeModal(); } }
             function toggleVisited(id){ const s=sales.find(x=>x.id===id); if(s){s.visited=!s.visited; save();} }
             function toggleInclude(id){ const s=sales.find(x=>x.id===id); if(s){s.include=s.include===false; save();} }
-            function moveRoute(id,dir){ const ordered=sortSales(); const idx=ordered.findIndex(s=>s.id===id); const other=ordered[idx+dir]; if(!other) return; const a=sales.find(s=>s.id===id); const b=sales.find(s=>s.id===other.id); const ad=a.date, at=a.time; a.date=b.date; a.time=b.time; b.date=ad; b.time=at; save(); }
-            function buildMapsUrl(){ const rs=routeSales().slice(0,10); if(!rs.length) return ''; const addrs=rs.map(s=>s.address.trim()); const dest=addrs[addrs.length-1]; const waypoints=addrs.slice(0,-1); let url='https://www.google.com/maps/dir/?api=1&travelmode=driving&destination='+encodeURIComponent(dest); if(waypoints.length) url+='&waypoints='+encodeURIComponent(waypoints.join('|')); return url; }
+            function moveRoute(id,dir){
+              const ordered=routeSales(); const idx=ordered.findIndex(s=>s.id===id); const other=ordered[idx+dir]; if(!other) return;
+              const a=sales.find(s=>s.id===id), b=sales.find(s=>s.id===other.id); const tmp=a.order; a.order=b.order; b.order=tmp; save();
+            }
+            function buildMapsUrl(singleAddress){
+              let addrs=[];
+              if(singleAddress) addrs=[singleAddress]; else addrs=routeSales().slice(0,10).map(s=>s.address.trim()).filter(Boolean);
+              if(!addrs.length) return '';
+              let url='https://www.google.com/maps/dir/?api=1&travelmode=driving';
+              const origin=($('homeInput').value||'').trim(); if(origin && !singleAddress) url+='&origin='+encodeURIComponent(origin);
+              const dest=addrs[addrs.length-1]; const waypoints=addrs.slice(0,-1);
+              url+='&destination='+encodeURIComponent(dest);
+              if(waypoints.length) url+='&waypoints='+encodeURIComponent(waypoints.join('|'));
+              return url;
+            }
             function openMaps(url){ if(!url){ alert('Add at least one sale with an address first.'); return; } if(window.SaleScoutAndroid && window.SaleScoutAndroid.openMaps){ window.SaleScoutAndroid.openMaps(url); } else { window.open(url,'_blank'); } }
-          
+            function openOneMap(id){ const s=sales.find(x=>x.id===id); if(s) openMaps(buildMapsUrl(s.address)); }
+
             $('openAddBtn').onclick=()=>openModal(); $('cancelSaleBtn').onclick=closeModal; $('saleModal').addEventListener('click',e=>{ if(e.target.id==='saleModal') closeModal(); });
-            $('saveSaleBtn').onclick=()=>{ const id=$('saleId').value||uid(); const existing=sales.find(s=>s.id===id)||{id}; existing.title=$('saleTitle').value.trim()||'Yard sale'; existing.address=$('saleAddress').value.trim(); existing.date=$('saleDate').value; existing.time=$('saleTime').value; existing.notes=$('saleNotes').value.trim(); existing.include=$('saleInclude').checked; existing.lat=null; existing.lon=null; if(!sales.find(s=>s.id===id)) sales.push(existing); save(); closeModal(); };
+            $('saveSaleBtn').onclick=()=>{
+              const id=$('saleId').value||uid(); const addr=$('saleAddress').value.trim();
+              if(!addr){ alert('Type an address first so Google Maps can route to it.'); $('saleAddress').focus(); return; }
+              let existing=sales.find(s=>s.id===id);
+              if(!existing){ existing={id, order:nextOrder()}; sales.push(existing); }
+              const oldAddr=existing.address||'';
+              existing.title=$('saleTitle').value.trim()||'Yard sale'; existing.address=addr; existing.date=$('saleDate').value; existing.time=$('saleTime').value; existing.notes=$('saleNotes').value.trim(); existing.include=$('saleInclude').checked; existing.visited=!!existing.visited;
+              if(oldAddr!==addr){ existing.lat=null; existing.lon=null; existing.geocodedAddress=''; }
+              save(); closeModal();
+            };
             $('deleteSaleBtn').onclick=()=>removeSale($('saleId').value);
-            $('centerBtn').onclick=geocodeHome; $('homeInput').value=localStorage.getItem('salescout_home')||'Gladwin, MI';
-            document.querySelectorAll('[data-screen]').forEach(btn=>btn.onclick=()=>{ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active')); $(btn.dataset.screen).classList.add('active'); btn.classList.add('active'); if(btn.dataset.screen==='mapScreen' && map) setTimeout(()=>map.invalidateSize(),200); });
+            $('centerBtn').onclick=geocodeHome; $('homeInput').value=localStorage.getItem('salescout_home')||'Gladwin, MI'; $('homeInput').addEventListener('change',()=>localStorage.setItem('salescout_home',$('homeInput').value.trim()));
+            document.querySelectorAll('[data-screen]').forEach(btn=>btn.onclick=()=>{ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active')); $(btn.dataset.screen).classList.add('active'); btn.classList.add('active'); if(btn.dataset.screen==='mapScreen' && map) setTimeout(()=>map.invalidateSize(),220); });
             document.querySelectorAll('[data-filter]').forEach(btn=>btn.onclick=()=>{ filter=btn.dataset.filter; renderList(); });
             $('clearVisitedBtn').onclick=()=>{ if(confirm('Delete all visited sales?')){ sales=sales.filter(s=>!s.visited); save(); } };
-            $('openRouteBtn').onclick=()=>openMaps(buildMapsUrl()); $('copyRouteBtn').onclick=()=>{ $('routeLinkBox').textContent=buildMapsUrl()||'No route yet.'; };
-            $('exportBtn').onclick=()=>{ $('backupText').value=JSON.stringify({version:1, exported:new Date().toISOString(), sales}, null, 2); $('backupText').focus(); $('backupText').select(); };
-            $('importBtn').onclick=()=>{ try{ const data=JSON.parse($('backupText').value); if(Array.isArray(data.sales)){ if(confirm('Replace your current list with this backup?')){ sales=data.sales; save(); alert('Imported.'); } } else alert('That backup text does not look right.'); }catch(e){ alert('Could not read backup text.'); } };
-            window.editSale=editSale; window.removeSale=removeSale; window.toggleVisited=toggleVisited; window.toggleInclude=toggleInclude; window.moveRoute=moveRoute;
+            $('openRouteBtn').onclick=()=>openMaps(buildMapsUrl()); $('copyRouteBtn').onclick=()=>{ const box=$('routeLinkBox'); box.style.display='block'; box.textContent=buildMapsUrl()||'No route yet.'; };
+            $('exportBtn').onclick=()=>{ $('backupText').value=JSON.stringify({version:2, exported:new Date().toISOString(), sales:sales.map(normalizeSale)}, null, 2); $('backupText').focus(); $('backupText').select(); };
+            $('importBtn').onclick=()=>{ try{ const data=JSON.parse($('backupText').value); if(Array.isArray(data.sales)){ if(confirm('Replace your current list with this backup?')){ sales=data.sales.map(normalizeSale); save(); alert('Imported.'); } } else alert('That backup text does not look right.'); }catch(e){ alert('Could not read backup text.'); } };
+            window.editSale=editSale; window.removeSale=removeSale; window.toggleVisited=toggleVisited; window.toggleInclude=toggleInclude; window.moveRoute=moveRoute; window.openOneMap=openOneMap;
             load(); initMap(); renderAll();
             </script>
           </body>
           </html>
-          EOF
+
+          EOF_HTML
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
@@ -450,5 +527,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: SaleScout-family-manual-apk
+          name: SaleScout-family-manual-v2-apk
           path: app/build/outputs/apk/debug/app-debug.apk
