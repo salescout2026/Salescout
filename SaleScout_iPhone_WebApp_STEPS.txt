@@ -1,0 +1,10 @@
+SaleScout iPhone Web App steps
+
+1. Upload SaleScout_iPhone_WebApp_Current.zip to the main/root of your GitHub repo.
+2. Create or replace .github/workflows/publish-iphone-webapp.yml with SaleScout_PUBLISH_IPHONE_WEBAPP.yml.
+3. Go to repo Settings -> Pages and set Source to GitHub Actions if GitHub asks.
+4. Go to Actions -> Publish SaleScout iPhone Web App. Run it or wait for it to run.
+5. Open the Pages URL it gives you on the iPhone in Safari.
+6. Tap Share -> Add to Home Screen -> Add.
+
+If GitHub Pages will not publish because the repo is private/free, either make the repo public or host the same ZIP contents on Firebase Hosting/Netlify.
