@@ -16,7 +16,7 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v4
 
-      - name: Create SaleScout family manual Android app v3
+      - name: Create SaleScout family manual Android app v4
         shell: bash
         run: |
           mkdir -p app/src/main/java/com/salescout/app
@@ -66,8 +66,8 @@ jobs:
                   applicationId 'com.salescout.family'
                   minSdk 23
                   targetSdk 35
-                  versionCode 30
-                  versionName '3.0-family-post-parser'
+                  versionCode 40
+                  versionName '4.0-family-better-parser'
               }
 
               signingConfigs {
@@ -337,7 +337,7 @@ jobs:
               <section id="mapScreen" class="screen active">
                 <div class="card">
                   <div class="row"><div class="grow"><label>Start from</label><input id="homeInput" value="Gladwin, MI" autocomplete="street-address" /></div><button id="centerBtn" title="Center map">Map</button></div>
-                  <div class="hint" id="centerStatus">Manual family mode — no login, no scraping.</div>
+                  <div class="hint" id="centerStatus">Manual family mode — paste Facebook posts or add sales by hand.</div>
                 </div>
                 <div class="card"><div id="map"></div><div class="mapNote">Pins use OpenStreetMap. Google Maps routing still works by address even if a pin does not appear.</div></div>
                 <div class="card"><div class="row"><div class="grow"><h2 style="margin:0">Add a sale</h2><div class="hint">Save the sales you want for today or this week, then send the route to Google Maps.</div></div><button id="openAddBtn">Add</button></div></div>
@@ -359,7 +359,7 @@ jobs:
 
             <nav class="tabs"><button class="active" data-screen="mapScreen">Map</button><button data-screen="listScreen">List</button><button data-screen="routeScreen">Route</button></nav>
 
-            <div id="saleModal" class="modal" aria-hidden="true"><div class="sheet"><h2 id="modalTitle">Add sale</h2><input type="hidden" id="saleId"><div class="parseBox"><label>Paste Facebook post</label><textarea id="postPaste" placeholder="Copy the whole Facebook yard-sale post, then paste it here. Example: Multi-family garage sale Friday 9-4 at 123 Main St, Gladwin. Tools, kids clothes, furniture..."></textarea><div class="actions"><button class="secondary" id="parsePostBtn" type="button">Break down post</button><button class="secondary" id="clearPostBtn" type="button">Clear pasted text</button></div><div id="parseStatus" class="parseStatus">Paste a post, tap Break down post, then check the fields below before saving.</div></div><div class="divider"></div><label>Sale name</label><input id="saleTitle" placeholder="Example: Church rummage sale"><label>Address</label><input id="saleAddress" placeholder="123 Main St, Gladwin, MI" autocomplete="street-address"><div class="smallText">The address is what Google Maps uses for routing. Check this field after parsing a post.</div><div class="split"><div><label>Date</label><input id="saleDate" type="date"></div><div><label>Start time</label><input id="saleTime" type="time"></div></div><label>Notes / what to look for</label><textarea id="saleNotes" placeholder="Tools, kids clothes, reef tank stuff, furniture..."></textarea><div class="checkline"><input id="saleInclude" type="checkbox" checked><span>Include in route</span></div><div class="actions formActions"><button id="saveSaleBtn">Save sale</button><button class="secondary" id="cancelSaleBtn">Cancel</button><button class="danger" id="deleteSaleBtn" style="display:none">Delete</button></div></div></div>
+            <div id="saleModal" class="modal" aria-hidden="true"><div class="sheet"><h2 id="modalTitle">Add sale</h2><input type="hidden" id="saleId"><div class="parseBox"><label>Paste Facebook post</label><textarea id="postPaste" placeholder="Copy the whole Facebook yard-sale post, then paste it here. Example: Multi-family garage sale Friday 9-4 at 123 Main St, Gladwin. Tools, kids clothes, furniture..."></textarea><div class="actions"><button class="secondary" id="parsePostBtn" type="button">Break down post</button><button class="secondary" id="clearPostBtn" type="button">Clear pasted text</button></div><div id="parseStatus" class="parseStatus">Paste a post, tap Break down post, then check the fields below before saving. I will leave the address blank if I am not confident.</div></div><div class="divider"></div><label>Sale name</label><input id="saleTitle" placeholder="Example: Church rummage sale"><label>Address</label><input id="saleAddress" placeholder="123 Main St, Gladwin, MI" autocomplete="street-address"><div class="smallText">The address is what Google Maps uses for routing. Check this field after parsing a post.</div><div class="split"><div><label>Date</label><input id="saleDate" type="date"></div><div><label>Start time</label><input id="saleTime" type="time"></div></div><label>Notes / what to look for</label><textarea id="saleNotes" placeholder="Tools, kids clothes, reef tank stuff, furniture..."></textarea><div class="checkline"><input id="saleInclude" type="checkbox" checked><span>Include in route</span></div><div class="actions formActions"><button id="saveSaleBtn">Save sale</button><button class="secondary" id="cancelSaleBtn">Cancel</button><button class="danger" id="deleteSaleBtn" style="display:none">Delete</button></div></div></div>
 
             <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
             <script>
@@ -371,7 +371,7 @@ jobs:
             const $ = id => document.getElementById(id);
             function todayISO(){ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); }
             function uid(){ return 's_' + Math.random().toString(36).slice(2) + Date.now().toString(36); }
-            function normalizeSale(s, i){ return { id:s.id||uid(), title:s.title||'Yard sale', address:s.address||'', date:s.date||'', time:s.time||'', notes:s.notes||'', include:s.include!==false, visited:!!s.visited, order:Number.isFinite(Number(s.order))?Number(s.order):i, lat:s.lat||null, lon:s.lon||null, geocodedAddress:s.geocodedAddress||'' }; }
+            function normalizeSale(s, i){ return { id:s.id||uid(), title:s.title||'Yard sale', address:s.address||'', date:s.date||'', time:s.time||'', notes:s.notes||'', include:s.include!==false, visited:!!s.visited, order:Number.isFinite(Number(s.order))?Number(s.order):i, lat:s.lat||null, lon:s.lon||null, geocodedAddress:s.geocodedAddress||'', geocodeVersion:Number(s.geocodeVersion)||0 }; }
             function load(){
               try{ sales = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); }catch(e){ sales=null; }
               if(!Array.isArray(sales)){
@@ -455,24 +455,88 @@ jobs:
               if(m) return {time:timeTo24(m[1],m[2],m[3],''), label:m[0]};
               return {time:'', label:''};
             }
-            function looksLikeAddress(line){
-              return /\b\d{1,6}\s+(?:[a-z0-9.'-]+\s+){0,6}(?:street|st\.?|road|rd\.?|avenue|ave\.?|drive|dr\.?|lane|ln\.?|court|ct\.?|circle|cir\.?|boulevard|blvd\.?|trail|trl\.?|place|pl\.?|way|highway|hwy\.?|m-?\d+|us-?\d+)\b/i.test(line);
+            const LOCAL_CITY_RE = /\b(Gladwin|Beaverton|Clare|Harrison|Midland|Mount Pleasant|Mt\.? Pleasant|West Branch|Coleman|Farwell|Sanford|Auburn|Pinconning|Roscommon|Prudenville|Houghton Lake|Standish|Bay City|Rose City|St\. Charles)\b/i;
+            const STATE_RE = /\b(MI|Michigan)\b/i;
+            const STREET_RE = /\b(street|st\.?|road|rd\.?|avenue|ave\.?|drive|dr\.?|lane|ln\.?|court|ct\.?|circle|cir\.?|boulevard|blvd\.?|trail|trl\.?|place|pl\.?|way|highway|hwy\.?|terrace|ter\.?|parkway|pkwy\.?|loop|path|alley)\b/i;
+            const ROUTE_RE = /\b(?:m|us|i)[-\s]?\d{1,3}\b/i;
+            const ITEM_RE = /\b(tools?|clothes|clothing|furniture|dresser|couch|sofa|table|chairs?|toys?|kids?|baby|toddler|women'?s?|men'?s?|shoes?|household|decor|reef|tank|fish|misc|books?|kitchen|antiques?|crafts?|collectibles?|garage items?|priced|each|obo|firm|free|lot of|lots of|everything must go|washer|dryer|mower|bike|bikes|games?|movies?|jewelry|purses?|bags?)\b/i;
+            function homePlace(){ return (($('homeInput') && $('homeInput').value) || localStorage.getItem('salescout_home') || 'Gladwin, MI').trim() || 'Gladwin, MI'; }
+            function stripAddressLabel(line){ return String(line||'').replace(/^(?:address|addy|location|where|located\s+at|located|place|pickup|pick up)\s*[:\-–—]?\s*/i,'').trim(); }
+            function hasHouseNumber(s){ return /(^|\D)\d{1,6}\b/.test(s); }
+            function hasStreetAddress(s){ return hasHouseNumber(s) && (STREET_RE.test(s) || ROUTE_RE.test(s)); }
+            function isItemishLine(line){
+              const s = String(line||'');
+              if(!s) return false;
+              const hasAddressWords = STREET_RE.test(s) || ROUTE_RE.test(s) || LOCAL_CITY_RE.test(s) || STATE_RE.test(s);
+              if((/[$•;]/.test(s) || s.split(',').length >= 3) && ITEM_RE.test(s) && !hasStreetAddress(s)) return true;
+              if(ITEM_RE.test(s) && !hasAddressWords) return true;
+              if(/\b\d+\s*(?:piece|pc|inch|in\.?|gal|gallon|size|month|months|year|years|yr|yrs|t|xl|lbs?)\b/i.test(s) && !hasStreetAddress(s)) return true;
+              return false;
             }
+            function cleanAddressCandidate(raw){
+              let s = String(raw||'').replace(/^[📍🗺️🏠➡️\s]+/u,'').trim();
+              s = stripAddressLabel(s);
+              s = s.replace(/\s+(?:no early birds|no early sales|please message|message me|pm me|cash only|venmo|paypal)\b.*$/i,'');
+              s = s.replace(/\s+(?:sale starts?|starts?|hours?|open)\s*[:\-]?\s*\d{1,2}.*$/i,'');
+              s = s.replace(/[\s.]+$/,'').replace(/\s{2,}/g,' ');
+              return s;
+            }
+            function scoreAddressCandidate(line, labelled=false){
+              const s = cleanAddressCandidate(line);
+              if(!s || s.length < 3 || s.length > 120) return -100;
+              let score = labelled ? 35 : 0;
+              if(hasStreetAddress(s)) score += 75;
+              else if(hasHouseNumber(s) && labelled) score += 35;
+              if(LOCAL_CITY_RE.test(s)) score += 15;
+              if(STATE_RE.test(s)) score += 20;
+              if(/^\d{1,6}\b/.test(s)) score += 8;
+              if(!hasStreetAddress(s) && LOCAL_CITY_RE.test(s) && (STATE_RE.test(s)||labelled)) score += 20;
+              if(isItemishLine(s) && !(labelled && hasStreetAddress(s))) score -= 75;
+              if(/^[$•-]/.test(s)) score -= 40;
+              if(/\b(?:for sale|iso|looking for|wanted)\b/i.test(s) && !labelled) score -= 30;
+              return score;
+            }
+            function finishAddress(addr){
+              let a = cleanAddressCandidate(addr);
+              if(!a) return '';
+              // If the post only says a street address, assume the search-center city so Google does not choose another town/state.
+              if(hasStreetAddress(a) && !LOCAL_CITY_RE.test(a) && !STATE_RE.test(a)) a += ', ' + homePlace();
+              else if(hasStreetAddress(a) && LOCAL_CITY_RE.test(a) && !STATE_RE.test(a)) a += ', MI';
+              else if(!hasStreetAddress(a) && LOCAL_CITY_RE.test(a) && !STATE_RE.test(a)) a += ', MI';
+              return a;
+            }
+            function looksLikeAddress(line){ return scoreAddressCandidate(line, false) >= 70; }
             function parsePostAddress(text){
               const lines = cleanPostText(text).split('\n').map(l=>l.trim()).filter(Boolean);
-              const labeled = lines.find(l=>/^(address|location|where|located at|located|place)\s*[:\-]/i.test(l) && (looksLikeAddress(l) || /\bmi\b|michigan|gladwin|beaverton|clare|harrison|midland|mount pleasant|mt pleasant|west branch/i.test(l)));
-              if(labeled) return labeled.replace(/^(address|location|where|located at|located|place)\s*[:\-]\s*/i,'').trim();
-              const addrLine = lines.find(looksLikeAddress);
-              if(addrLine) return addrLine.replace(/^(address|location|where|located at|located|place)\s*[:\-]\s*/i,'').replace(/\s{2,}/g,' ').trim();
-              const city = text.match(/\b(Gladwin|Beaverton|Clare|Harrison|Midland|Mount Pleasant|Mt\.? Pleasant|West Branch)\b\s*,?\s*(MI|Michigan)?\b/i);
-              if(city) return city[1].replace(/Mt\.?/i,'Mount') + ', MI';
-              return '';
+              const candidates = [];
+              function add(raw, labelled=false, why=''){
+                const cleaned = cleanAddressCandidate(raw);
+                if(!cleaned) return;
+                const score = scoreAddressCandidate(cleaned, labelled);
+                if(score > 0) candidates.push({raw:cleaned, score, labelled, why});
+              }
+              for(let i=0;i<lines.length;i++){
+                const line = lines[i];
+                if(/^(?:address|addy|location|where|located\s+at|located|place|pickup|pick up)\s*[:\-–—]?\s*$/i.test(line) && lines[i+1]) add(lines[i+1], true, 'label-next-line');
+                if(/^(?:address|addy|location|where|located\s+at|located|place|pickup|pick up)\s*[:\-–—]\s+/i.test(line)) add(line, true, 'label');
+                const inline = line.match(/\b(?:address|addy|location|where|located\s+at|located|pickup|pick up)\s*[:\-–—]?\s+(.{3,110})$/i);
+                if(inline) add(inline[1], true, 'inline-label');
+                const atStreet = line.match(/\b(?:at|@)\s+(\d{1,6}\s+[^\n]{2,95})/i);
+                if(atStreet) add(atStreet[1], false, 'at-street');
+                if(hasStreetAddress(line) && !isItemishLine(line)) add(line, false, 'street-line');
+              }
+              candidates.sort((a,b)=>b.score-a.score);
+              const best = candidates[0];
+              if(best && best.score >= 70) return {address:finishAddress(best.raw), confidence:best.score>=95?'high':'medium', warning:best.score>=95?'':'Possible address found — double-check it before saving.'};
+              const city = cleanPostText(text).match(LOCAL_CITY_RE);
+              if(city) return {address:'', city:city[0].replace(/Mt\.?/i,'Mount') + ', MI', confidence:'city-only', warning:'I only found the city. I left the address blank so it does not route to the wrong place.'};
+              return {address:'', city:'', confidence:'none', warning:'I did not find a safe address, so I left the address blank instead of guessing.'};
             }
             function parsePostTitle(text){
               const lines = cleanPostText(text).split('\n').map(l=>l.trim()).filter(Boolean);
               const saleLine = lines.find(l=>/\b(garage|yard|moving|estate|rummage|barn|tag|multi[ -]?family|sale)\b/i.test(l) && l.length <= 90 && !looksLikeAddress(l));
               if(saleLine) return saleLine.replace(/^(title|event)\s*[:\-]\s*/i,'').trim();
-              const first = lines.find(l=>l.length >= 4 && l.length <= 70 && !looksLikeAddress(l) && !/^\d/.test(l) && !/^(date|time|when|where|address|location)\s*[:\-]/i.test(l));
+              const first = lines.find(l=>l.length >= 4 && l.length <= 70 && !looksLikeAddress(l) && !/^\d/.test(l) && !/^(date|time|when|where|address|addy|location)\s*[:\-]/i.test(l) && !isItemishLine(l));
               return first || 'Facebook yard sale';
             }
             function parseFacebookPost(text){
@@ -480,21 +544,28 @@ jobs:
               if(!post){ alert('Paste the Facebook post first.'); return; }
               const date = parsePostDate(post);
               const time = parsePostTime(post);
-              const address = parsePostAddress(post);
+              const addr = parsePostAddress(post);
               const title = parsePostTitle(post);
               const found = [];
+              const warnings = [];
               if(title){ $('saleTitle').value = title; found.push('title'); }
-              if(address){ $('saleAddress').value = address; found.push('address'); }
+              if(addr.address){ $('saleAddress').value = addr.address; found.push('address'); }
+              else { $('saleAddress').value = ''; warnings.push(addr.warning || 'No safe address found.'); }
               if(date.iso){ $('saleDate').value = date.iso; found.push('date'); }
               if(time.time){ $('saleTime').value = time.time; found.push('start time'); }
+              if(addr.warning && addr.address) warnings.push(addr.warning);
               const noteLines = [];
+              if(addr.city && !addr.address) noteLines.push('City found but not used as route address: '+addr.city);
               if(date.label) noteLines.push('Post date text: '+date.label);
               if(time.label) noteLines.push('Post time text: '+time.label);
               noteLines.push('Copied Facebook post:');
               noteLines.push(post);
               $('saleNotes').value = noteLines.join('\n');
-              $('parseStatus').textContent = found.length ? ('Filled: '+found.join(', ')+'. Check the address/date before saving.') : 'I could not confidently find address/date/time. I put the post in notes so you can fill the fields manually.';
-              if(!address) $('saleAddress').focus();
+              let msg = found.length ? ('Filled: '+found.join(', ')+'.') : 'I could not confidently fill the fields.';
+              if(warnings.length) msg += ' ' + warnings.join(' ');
+              msg += ' Always check the address before saving.';
+              $('parseStatus').textContent = msg;
+              if(!addr.address) $('saleAddress').focus();
             }
 
             function initMap(){
@@ -507,13 +578,27 @@ jobs:
                 scheduleMapRender();
               }catch(e){ $('map').innerHTML='<div class="empty">Map could not load, but the list and Google Maps routing still work.</div>'; }
             }
+            function degreesToRad(x){ return x * Math.PI / 180; }
+            function milesFromGladwin(lat, lon){
+              const lat1=44.0295, lon1=-84.4864;
+              const R=3958.8, dLat=degreesToRad(lat-lat1), dLon=degreesToRad(lon-lon1);
+              const a=Math.sin(dLat/2)**2 + Math.cos(degreesToRad(lat1))*Math.cos(degreesToRad(lat))*Math.sin(dLon/2)**2;
+              return 2*R*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            }
+            function addressForSearch(addr){ return finishAddress(addr); }
             async function geocodeSale(s){
               if(!s.address.trim()) return s;
-              if(s.lat && s.lon && s.geocodedAddress===s.address) return s;
+              const searchAddress = addressForSearch(s.address);
+              if(s.lat && s.lon && s.geocodedAddress===searchAddress && s.geocodeVersion===4) return s;
               try{
-                const res=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(s.address));
+                const base='https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=us&viewbox=-86.2,45.4,-82.8,43.0&q=';
+                const res=await fetch(base + encodeURIComponent(searchAddress));
                 const data=await res.json();
-                if(data && data[0]){ s.lat=parseFloat(data[0].lat); s.lon=parseFloat(data[0].lon); s.geocodedAddress=s.address; saveOnly(); }
+                let choices=(data||[]).filter(x=>/Michigan|, MI,| MI /i.test(x.display_name||''));
+                if(!choices.length) choices=data||[];
+                choices=choices.map(x=>({...x, _miles:milesFromGladwin(parseFloat(x.lat), parseFloat(x.lon))})).sort((a,b)=>a._miles-b._miles);
+                const best=choices[0];
+                if(best){ s.lat=parseFloat(best.lat); s.lon=parseFloat(best.lon); s.geocodedAddress=searchAddress; s.geocodeVersion=4; saveOnly(); }
               }catch(e){}
               return s;
             }
@@ -559,7 +644,7 @@ jobs:
             function openModal(s=null){
               document.body.classList.add('modal-open');
               $('saleModal').classList.add('show'); $('saleModal').setAttribute('aria-hidden','false');
-              $('modalTitle').textContent=s?'Edit sale':'Add sale'; $('saleId').value=s?.id||''; $('saleTitle').value=s?.title||''; $('saleAddress').value=s?.address||''; $('saleDate').value=s?.date||todayISO(); $('saleTime').value=s?.time||''; $('saleNotes').value=s?.notes||''; $('saleInclude').checked=s?.include!==false; $('deleteSaleBtn').style.display=s?'inline-block':'none'; $('postPaste').value=''; $('parseStatus').textContent='Paste a post, tap Break down post, then check the fields below before saving.';
+              $('modalTitle').textContent=s?'Edit sale':'Add sale'; $('saleId').value=s?.id||''; $('saleTitle').value=s?.title||''; $('saleAddress').value=s?.address||''; $('saleDate').value=s?.date||todayISO(); $('saleTime').value=s?.time||''; $('saleNotes').value=s?.notes||''; $('saleInclude').checked=s?.include!==false; $('deleteSaleBtn').style.display=s?'inline-block':'none'; $('postPaste').value=''; $('parseStatus').textContent='Paste a post, tap Break down post, then check the fields below before saving. I will leave the address blank if I am not confident.';
               setTimeout(()=>$(s?'saleTitle':'postPaste').focus(),150);
             }
             function closeModal(){ document.body.classList.remove('modal-open'); $('saleModal').classList.remove('show'); $('saleModal').setAttribute('aria-hidden','true'); }
@@ -574,7 +659,7 @@ jobs:
             }
             function buildMapsUrl(singleAddress){
               let addrs=[];
-              if(singleAddress) addrs=[singleAddress]; else addrs=routeSales().slice(0,10).map(s=>s.address.trim()).filter(Boolean);
+              if(singleAddress) addrs=[addressForSearch(singleAddress)]; else addrs=routeSales().slice(0,10).map(s=>addressForSearch(s.address.trim())).filter(Boolean);
               if(!addrs.length) return '';
               let url='https://www.google.com/maps/dir/?api=1&travelmode=driving';
               const origin=($('homeInput').value||'').trim(); if(origin && !singleAddress) url+='&origin='+encodeURIComponent(origin);
@@ -586,7 +671,7 @@ jobs:
             function openMaps(url){ if(!url){ alert('Add at least one sale with an address first.'); return; } if(window.SaleScoutAndroid && window.SaleScoutAndroid.openMaps){ window.SaleScoutAndroid.openMaps(url); } else { window.open(url,'_blank'); } }
             function openOneMap(id){ const s=sales.find(x=>x.id===id); if(s) openMaps(buildMapsUrl(s.address)); }
 
-            $('openAddBtn').onclick=()=>openModal(); $('cancelSaleBtn').onclick=closeModal; $('parsePostBtn').onclick=()=>parseFacebookPost($('postPaste').value); $('clearPostBtn').onclick=()=>{ $('postPaste').value=''; $('parseStatus').textContent='Paste a post, tap Break down post, then check the fields below before saving.'; $('postPaste').focus(); }; $('saleModal').addEventListener('click',e=>{ if(e.target.id==='saleModal') closeModal(); });
+            $('openAddBtn').onclick=()=>openModal(); $('cancelSaleBtn').onclick=closeModal; $('parsePostBtn').onclick=()=>parseFacebookPost($('postPaste').value); $('clearPostBtn').onclick=()=>{ $('postPaste').value=''; $('parseStatus').textContent='Paste a post, tap Break down post, then check the fields below before saving. I will leave the address blank if I am not confident.'; $('postPaste').focus(); }; $('saleModal').addEventListener('click',e=>{ if(e.target.id==='saleModal') closeModal(); });
             $('saveSaleBtn').onclick=()=>{
               const id=$('saleId').value||uid(); const addr=$('saleAddress').value.trim();
               if(!addr){ alert('Type an address first so Google Maps can route to it.'); $('saleAddress').focus(); return; }
@@ -603,7 +688,7 @@ jobs:
             document.querySelectorAll('[data-filter]').forEach(btn=>btn.onclick=()=>{ filter=btn.dataset.filter; renderList(); });
             $('clearVisitedBtn').onclick=()=>{ if(confirm('Delete all visited sales?')){ sales=sales.filter(s=>!s.visited); save(); } };
             $('openRouteBtn').onclick=()=>openMaps(buildMapsUrl()); $('copyRouteBtn').onclick=()=>{ const box=$('routeLinkBox'); box.style.display='block'; box.textContent=buildMapsUrl()||'No route yet.'; };
-            $('exportBtn').onclick=()=>{ $('backupText').value=JSON.stringify({version:3, exported:new Date().toISOString(), sales:sales.map(normalizeSale)}, null, 2); $('backupText').focus(); $('backupText').select(); };
+            $('exportBtn').onclick=()=>{ $('backupText').value=JSON.stringify({version:4, exported:new Date().toISOString(), sales:sales.map(normalizeSale)}, null, 2); $('backupText').focus(); $('backupText').select(); };
             $('importBtn').onclick=()=>{ try{ const data=JSON.parse($('backupText').value); if(Array.isArray(data.sales)){ if(confirm('Replace your current list with this backup?')){ sales=data.sales.map(normalizeSale); save(); alert('Imported.'); } } else alert('That backup text does not look right.'); }catch(e){ alert('Could not read backup text.'); } };
             window.editSale=editSale; window.removeSale=removeSale; window.toggleVisited=toggleVisited; window.toggleInclude=toggleInclude; window.moveRoute=moveRoute; window.openOneMap=openOneMap;
             load(); initMap(); renderAll();
@@ -639,5 +724,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: SaleScout-family-post-parser-v3-apk
+          name: SaleScout-family-parser-v4-apk
           path: app/build/outputs/apk/debug/app-debug.apk
