@@ -138,22 +138,27 @@ jobs:
             <title>SaleScout Family App</title>
             <link rel="icon" href="salescout-icon.png" />
             <style>
-              :root { color-scheme: light; --green:#0f7a3b; --green2:#0b5f2e; --bg:#f5f7f5; --card:#fff; --text:#102014; --muted:#5f6f64; }
+              :root { color-scheme: light; --green:#0f7a3b; --green2:#0b5f2e; --bg:#f5f7f5; --card:#fff; --text:#102014; --muted:#5f6f64; --line:#dce8df; --warn:#fff4cf; --warnText:#5e4300; }
               * { box-sizing:border-box; }
               body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:linear-gradient(180deg,#eaf5ec,var(--bg)); color:var(--text); }
-              .wrap { max-width:760px; margin:0 auto; padding:28px 16px 40px; }
+              .wrap { max-width:820px; margin:0 auto; padding:28px 16px 42px; }
               .hero { text-align:center; padding:18px 8px 8px; }
               .icon { width:92px; height:92px; border-radius:22px; box-shadow:0 10px 24px rgba(0,0,0,.14); background:#0f7a3b; }
               h1 { margin:14px 0 6px; font-size:2rem; line-height:1.1; }
-              .sub { margin:0 auto; color:var(--muted); font-size:1.05rem; max-width:570px; }
+              .sub { margin:0 auto; color:var(--muted); font-size:1.05rem; max-width:610px; }
               .grid { display:grid; grid-template-columns:1fr; gap:14px; margin-top:22px; }
-              @media (min-width:680px){ .grid{ grid-template-columns:1fr 1fr; } }
-              .card { background:var(--card); border:1px solid #dce8df; border-radius:18px; padding:18px; box-shadow:0 8px 20px rgba(16,32,20,.08); }
+              @media (min-width:740px){ .grid{ grid-template-columns:1fr 1fr; } }
+              .card { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:18px; box-shadow:0 8px 20px rgba(16,32,20,.08); }
               .card h2 { margin:0 0 8px; font-size:1.25rem; }
+              .card h3 { margin:18px 0 7px; font-size:1.05rem; }
               .card p { color:var(--muted); margin:0 0 14px; line-height:1.38; }
               .btn { display:block; text-align:center; text-decoration:none; font-weight:800; background:var(--green); color:white; padding:14px 16px; border-radius:14px; box-shadow:0 7px 14px rgba(15,122,59,.22); }
               .btn:active { background:var(--green2); transform:translateY(1px); }
-              .steps { margin-top:12px; padding-left:20px; color:#304637; line-height:1.45; }
+              .steps { margin:12px 0 0; padding-left:20px; color:#304637; line-height:1.45; }
+              .steps li { margin:4px 0; }
+              details { margin-top:14px; border:1px solid var(--line); border-radius:14px; padding:12px 13px; background:#f8fbf8; }
+              summary { cursor:pointer; font-weight:900; color:#173f25; }
+              .note { margin-top:12px; background:var(--warn); color:var(--warnText); border-radius:12px; padding:10px 12px; line-height:1.35; font-weight:650; }
               .tiny { font-size:.92rem; color:var(--muted); margin-top:18px; text-align:center; }
               code { background:#eef4ef; padding:2px 5px; border-radius:6px; }
             </style>
@@ -172,10 +177,31 @@ jobs:
                   <p>Download the app installer, open it, and allow installs from your browser or Files app if Android asks.</p>
                   <a class="btn" href="SaleScout.apk" download>Download Android APK</a>
                   <ol class="steps">
-                    <li>Tap the button.</li>
-                    <li>Open <code>SaleScout.apk</code>.</li>
+                    <li>Tap <strong>Download Android APK</strong>.</li>
+                    <li>Open <code>SaleScout.apk</code> when the download finishes.</li>
                     <li>Tap <strong>Install</strong>.</li>
                   </ol>
+
+                  <details open>
+                    <summary>Android says “not allowed” or “install blocked”?</summary>
+                    <ol class="steps">
+                      <li>Tap <strong>Settings</strong> on the warning screen if Android shows one.</li>
+                      <li>Turn on <strong>Allow from this source</strong> for the app you used to download/open it, usually <strong>Chrome</strong>, <strong>Drive</strong>, or <strong>My Files</strong>.</li>
+                      <li>Tap the back arrow.</li>
+                      <li>Tap <strong>Install</strong> again.</li>
+                    </ol>
+                    <p class="note">On Samsung phones, the manual path is usually:<br><strong>Settings → Security and privacy → More security settings → Install unknown apps</strong><br>Then choose Chrome, Drive, or My Files and turn on <strong>Allow from this source</strong>.</p>
+                    <p>After SaleScout installs, you can turn that permission back off for safety.</p>
+                  </details>
+
+                  <details>
+                    <summary>Can’t find the downloaded APK?</summary>
+                    <ol class="steps">
+                      <li>Open <strong>My Files</strong>.</li>
+                      <li>Go to <strong>Downloads</strong>.</li>
+                      <li>Tap <code>SaleScout.apk</code>.</li>
+                    </ol>
+                  </details>
                 </article>
 
                 <article class="card">
@@ -183,10 +209,16 @@ jobs:
                   <p>Open the iPhone web app in Safari, then add it to the Home Screen so it looks like an app.</p>
                   <a class="btn" href="iphone/">Open iPhone Web App</a>
                   <ol class="steps">
-                    <li>Open the button in Safari.</li>
-                    <li>Tap Share.</li>
+                    <li>Open the button in <strong>Safari</strong>.</li>
+                    <li>Tap the <strong>Share</strong> button.</li>
                     <li>Tap <strong>Add to Home Screen</strong>.</li>
+                    <li>Tap <strong>Add</strong>.</li>
                   </ol>
+
+                  <details open>
+                    <summary>iPhone tip</summary>
+                    <p>If the page opens inside Facebook, Messenger, Gmail, or another app, tap the browser menu and choose <strong>Open in Safari</strong>. The <strong>Add to Home Screen</strong> option is in Safari’s Share menu.</p>
+                  </details>
                 </article>
               </section>
 
